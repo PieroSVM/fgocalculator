@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Plan your Saint Quartz for upcoming FGO Global banners using the JP schedule.">
+<title>FGO Quartz Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday tool for players, quiet and exact
+   IDEA a summon schedule: banners in queue order, each one a ticket you can add to your plan
+   PICTURE the official campaign banner art, shown as is, no frames
+   COLOUR white ground, near-black ink, quartz blue as the one working colour, green and red only for enough / short
+   TYPE Inter throughout, weight does the hierarchy
+   LAYOUT laptop: inputs left, result right, plan below; timeline as image + details rows. phone: stacked, result bar sticky */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#0f1013);--sf:light-dark(#f4f4f5,#1a1b1f);--sf2:light-dark(#e9e9ec,#25262b);--ink:light-dark(#111216,#f1f1f3);--mut:light-dark(#5f6169,#a1a3ab);--line:light-dark(#e4e4e7,#2a2b31);--ac:light-dark(#2f54eb,#7b95ff);--acInk:light-dark(#ffffff,#0f1013);--acSf:light-dark(#eef1ff,#1c2240);--ok:light-dark(#127a46,#4fd28f);--bad:light-dark(#c4301c,#ff8a73)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:clip;-webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0;line-height:1.15;letter-spacing:-.015em}
+p{margin:0}
+img{max-width:100%;display:block}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:max(16px,4vw)}
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;min-height:60px}
+.logo{font-weight:700;font-size:17px;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.logo .short{display:none}
+.tabs{display:flex;gap:2px;margin-left:auto}
+.tabs a{padding:8px 14px;border-radius:8px;color:var(--mut);text-decoration:none;font-weight:600;font-size:15px;min-height:40px;display:flex;align-items:center}
+.tabs a:hover{color:var(--ink);background:var(--sf)}
+.tabs a.on{color:var(--ink);background:var(--sf2)}
+main{padding-block:28px 64px}
+.view{display:none}
+.view.on{display:block}
+.pagehd{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:8px 24px;margin-bottom:20px}
+.pagehd h1{font-size:clamp(28px,4vw,36px);font-weight:700}
+.pagehd p{color:var(--mut);max-width:62ch}
+.calc{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;align-items:start}
+.panel{background:var(--sf);border-radius:14px;padding:20px}
+.panel h2{font-size:17px;font-weight:650;margin-bottom:14px}
+.panel h2+.hint{margin:-8px 0 14px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--mut);font-weight:500}
+.fld .in{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:10px;padding:0 12px;border:1px solid var(--line)}
+.fld .in:focus-within{border-color:var(--ac)}
+.fld svg{width:20px;height:20px;flex:none}
+.fld input{border:0;background:none;outline:0;width:100%;min-height:44px;font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums}
+.fld i,.tg i{font-style:normal;color:var(--mut);font-weight:400;font-size:13px;margin-left:4px;white-space:nowrap}
+.tgs{display:flex;flex-direction:column;justify-content:flex-end;gap:2px}
+.tgr{display:flex;align-items:center;gap:8px}
+.mini{width:56px;min-height:36px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:0 8px;font-size:16px;text-align:right}
+.mini:focus{border-color:var(--ac);outline:0}
+.sep{height:1px;background:var(--line);margin:18px 0}
+.tg{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;font-weight:500;min-height:44px;color:var(--ink)}
+.tg label{cursor:pointer}
+.sw{appearance:none;-webkit-appearance:none;width:40px;height:24px;border-radius:12px;background:var(--sf2);position:relative;cursor:pointer;flex:none;margin:0;transition:background .15s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .15s}
+.sw:checked{background:var(--ac)}
+.sw:checked::after{left:19px}
+.result{position:sticky;top:80px}
+.big{font-size:clamp(44px,6vw,60px);font-weight:700;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.big small{font-size:17px;font-weight:600;color:var(--mut);letter-spacing:0;margin-left:6px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:15px}
+.kv:first-of-type{margin-top:18px}
+.kv span{color:var(--mut)}
+.kv b{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.btn{border:0;border-radius:10px;padding:0 16px;min-height:44px;font-weight:600;font-size:15px;background:var(--sf2);color:var(--ink)}
+.btn:hover{filter:brightness(.96)}
+.btn.pri{background:var(--ac);color:var(--acInk)}
+.btn.danger{background:var(--bad);color:#fff}
+.btn.ghost{background:none;color:var(--mut)}
+.btn.sm{min-height:36px;padding:0 12px;font-size:14px;border-radius:8px}
+.hint{font-size:13.5px;color:var(--mut)}
+.sec{margin-top:40px}
+.sechd{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.sechd h2{font-size:22px;font-weight:700}
+.sum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.sum div{background:var(--sf);border-radius:12px;padding:14px 16px}
+.sum span{display:block;font-size:13.5px;color:var(--mut)}
+.sum strong{font-size:24px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.empty{background:var(--sf);border-radius:14px;padding:32px 20px;text-align:center}
+.empty h3{font-size:17px;margin-bottom:6px}
+.empty p{color:var(--mut);max-width:52ch;margin:0 auto 14px}
+.pb{display:grid;grid-template-columns:240px minmax(0,1fr);gap:20px;padding:16px 0;border-top:1px solid var(--line)}
+.art{position:relative;overflow:hidden;aspect-ratio:8/3;background:var(--sf)}
+.art img{position:absolute;left:-.89%;top:-2.45%;width:101.78%;height:104.9%;max-width:none}
+.pb .art{border-radius:10px}
+.pb h3{font-size:17px;font-weight:650}
+.pb .meta{font-size:14px;color:var(--mut);margin:2px 0 12px}
+.pbh{display:flex;justify-content:space-between;gap:12px;align-items:start}
+.x{flex:none}
+.pctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pctl .num{width:96px;min-height:36px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:0 10px;font-size:16px;text-align:right;font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:3px;background:var(--sf2);overflow:hidden;margin:14px 0 8px}
+.bar i{display:block;height:100%;background:var(--ac);border-radius:3px}
+.pb.short .bar i{background:var(--bad)}
+.nums{display:flex;flex-wrap:wrap;gap:4px 20px;font-size:14px;color:var(--mut)}
+.nums b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.ok{color:var(--ok);font-weight:600}
+.bad{color:var(--bad);font-weight:600}
+.tools{position:sticky;top:60px;z-index:10;background:var(--bg);display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 0;margin-bottom:4px}
+.tools input,.tools select{min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 12px;font-size:16px}
+.tools input{flex:1 1 240px}
+.seg{display:flex;background:var(--sf);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:none;border-radius:8px;padding:0 12px;min-height:38px;font-size:14px;font-weight:600;color:var(--mut);white-space:nowrap}
+.seg button.on{background:var(--bg);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.count{font-size:14px;color:var(--mut);white-space:nowrap;margin-left:auto}
+.month{font-size:14px;font-weight:600;color:var(--mut);margin:28px 0 4px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.ev{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;align-items:center;padding:20px 0;border-bottom:1px solid var(--line);content-visibility:auto;contain-intrinsic-size:auto 300px}
+.ev .art{border-radius:12px;align-self:center}
+.ev h3{font-size:19px;font-weight:650}
+.ev .d{font-size:14px;color:var(--mut);margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chips span{background:var(--sf);border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chips .a{background:var(--acSf);color:var(--ac);font-weight:600}
+.faces{display:flex;gap:10px;margin-top:16px;position:relative}
+.face{width:82px;flex:none;font-size:12.5px;font-weight:600;line-height:1.3}
+.face>span,.face small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.more{position:relative;flex:none}
+.more summary{list-style:none;width:82px;height:82px;border-radius:10px;background:var(--sf);display:grid;place-items:center;font-weight:600;font-size:15px;min-height:0;color:var(--ink)}
+.more summary::-webkit-details-marker{display:none}
+.more summary:hover,.more[open] summary{background:var(--sf2)}
+.more.wide summary{width:auto;height:36px;padding:0 12px;border-radius:8px;font-size:14px}
+.pop{position:absolute;right:0;top:calc(100% + 8px);z-index:30;background:var(--bg);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:12px;width:max-content;max-width:min(372px,calc(100vw - 32px));display:flex;flex-wrap:wrap;gap:10px;max-height:340px;overflow:auto}
+.pop.list{display:block;font-size:14px;line-height:1.7}
+.ev:has(details[open]){content-visibility:visible;z-index:5;position:relative}
+.nameline{display:flex;align-items:center;gap:10px;margin-top:14px}
+.nameline p{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;color:var(--mut)}
+.nameline b{color:var(--ink);font-weight:600}
+.pic{position:relative;width:82px;height:82px;border-radius:10px;overflow:hidden;background:var(--sf);margin-bottom:6px}
+.pic img{position:absolute;left:-5.65%;top:-4.84%;width:111.3%;height:121%;max-width:none}
+.face small{display:block;color:var(--mut);font-weight:500;font-size:12px;margin-top:1px}
+.add{margin-top:16px}
+.add.in{background:var(--acSf);color:var(--ac)}
+.evrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 20px;padding:14px 0;border-bottom:1px solid var(--line);content-visibility:auto;contain-intrinsic-size:auto 64px}
+.evrow h3{font-size:16px;font-weight:600}
+.evrow .chips{margin-top:0}
+details.qe{margin-top:36px;background:var(--sf);border-radius:14px;padding:4px 20px}
+.qe summary{font-weight:600;min-height:52px;display:flex;align-items:center}
+details.qe[open]{padding-bottom:20px}
+summary{cursor:pointer}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:6px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--mut);font-weight:600;white-space:nowrap}
+td input{width:72px;min-height:36px;padding:0 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);font-size:15px;text-align:right}
+td.nm{min-width:240px}
+textarea{width:100%;min-height:110px;font:13px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
+footer{border-top:1px solid var(--line);padding-block:24px 40px;color:var(--mut);font-size:13.5px}
+footer p{max-width:80ch}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(max-width:860px){.calc{grid-template-columns:minmax(0,1fr)}.result{position:static}.sum{grid-template-columns:repeat(2,minmax(0,1fr))}.ev{grid-template-columns:minmax(0,1fr);gap:14px}.pb{grid-template-columns:160px minmax(0,1fr);gap:14px}}
+@media(max-width:560px){.top .wrap{min-height:56px;gap:8px}.logo span{display:none}.logo .short{display:inline}.tabs a{padding:8px 10px}.tools{top:56px}.grid2{grid-template-columns:minmax(0,1fr)}.pb{grid-template-columns:minmax(0,1fr)}.face,.more summary{width:64px}.pic,.more summary{height:64px}.pic{width:64px}.face small{font-size:11.5px}.faces{gap:8px}.face{font-size:12px}.panel{padding:16px}.count{margin-left:0}.mobbar{display:flex}}
+.mobbar{display:none;position:sticky;bottom:0;z-index:15;background:var(--bg);border-top:1px solid var(--line);padding:10px max(16px,4vw) calc(10px + env(safe-area-inset-bottom,0px));justify-content:space-between;align-items:center;font-size:14px;color:var(--mut)}
+.mobbar b{color:var(--ink);font-size:18px;font-variant-numeric:tabular-nums}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+  <div class="logo"><span>FGO Quartz Calculator</span><b class="short">FGO SQ</b></div>
+  <nav class="tabs" aria-label="Sections">
+    <a href="#calculator" id="tab-calculator">Calculator</a>
+    <a href="#timeline" id="tab-timeline">Timeline</a>
+  </nav>
+</div></header>
+
+<main class="wrap">
+<section class="view" id="v-calculator" aria-labelledby="h-calc">
+  <div class="pagehd"><h1 id="h-calc">Saint Quartz planner</h1><p>Global follows JP about two years behind. Enter what you have, add banners, and see if you can reach each one.</p></div>
+  <div class="calc">
+    <div class="panel">
+      <h2>Current resources</h2>
+      <div class="grid2">
+        <label class="fld">Saint Quartz<span class="in"><input type="number" id="sq" min="0" inputmode="numeric"></span></label>
+        <label class="fld"><span>Quartz Fragments <i>7 = 1 SQ</i></span><span class="in"><input type="number" id="frag" min="0" inputmode="numeric"></span></label>
+        <label class="fld">Summon Tickets<span class="in"><input type="number" id="tk" min="0" inputmode="numeric"></span></label>
+        <label class="fld">Unclaimed story SQ<span class="in"><input type="number" id="story" min="0" inputmode="numeric"></span></label>
+      </div>
+      <div class="sep"></div>
+      <h2>Income</h2>
+      <div class="grid2">
+        <label class="fld"><span>SQ per week <i>login and missions</i></span><span class="in"><input type="number" id="weekly" min="0" step="0.5" inputmode="decimal"></span></label>
+        <div class="tgs">
+          <div class="tg"><label for="useTk">Shop tickets</label><span class="tgr"><input type="number" id="monthly" min="0" max="10" inputmode="numeric" aria-label="Shop tickets per month" class="mini"><span class="hint">/ mo</span><input type="checkbox" class="sw" id="useTk"></span></div>
+          <div class="tg"><label for="useEv">SQ from events <i>JP data</i></label><input type="checkbox" class="sw" id="useEv"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel result" aria-live="polite">
+      <h2>Right now</h2>
+      <div class="big" id="nowRolls"></div>
+      <div class="kv"><span>Monthly income</span><b id="mInc"></b></div>
+      <div class="kv"><span>Global is at</span><b id="nowJp"></b></div>
+      <div class="kv"><span>Next banner</span><b id="nextBan"></b></div>
+      <div class="btns"><button class="btn pri" id="addNext">Add next banner</button><a class="btn" href="#timeline" style="display:inline-flex;align-items:center;text-decoration:none">Browse timeline</a></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sechd"><h2>Your plan</h2><button class="btn ghost sm" id="clearPlan">Clear plan</button></div>
+    <div id="planSum"></div>
+    <div id="plan"></div>
+  </div>
+</section>
+
+<section class="view" id="v-timeline" aria-labelledby="h-tl">
+  <div class="pagehd"><h1 id="h-tl">Upcoming on Global</h1><p>Every 5★ summoning campaign in JP order, with estimated Global dates and the rolls you would have by then.</p></div>
+  <div class="tools">
+    <label class="sr" for="q">Search</label>
+    <input type="search" id="q" placeholder="Search servants or events" autocomplete="off">
+    <div class="seg" role="group" aria-label="Filter" id="seg">
+      <button data-f="all" class="on">All</button><button data-f="banner">Banners</button><button data-f="event">Events</button><button data-f="plan">In plan</button>
+    </div>
+    <div class="count" id="count"></div>
+  </div>
+  <div id="tl"></div>
+  <details class="qe"><summary>Edit the queue, import or export</summary>
+    <p class="hint">Fix any step if Global strays from the JP order. Days is the wait before that step; every change recalculates.</p>
+    <div class="scroll" style="margin-top:10px"><table><thead><tr><th>#</th><th>JP date</th><th>Step</th><th>Days</th><th>SQ</th><th>Tickets</th><th></th></tr></thead><tbody id="qt"></tbody></table></div>
+    <div class="row"><button class="btn sm" id="undo">Undo</button><button class="btn sm" id="reset">Restore source data</button><button class="btn sm" id="copy">Copy JSON</button><button class="btn sm" id="load">Load JSON</button><span class="hint" id="jmsg" role="status"></span></div>
+    <textarea id="json" aria-label="Queue as JSON" spellcheck="false"></textarea>
+  </details>
+</section>
+</main>
+<div class="mobbar" id="mobbar"><span>Rolls now</span><b id="mobRolls"></b></div>
+<footer><div class="wrap"><p id="foot"></p></div></footer>
+
+<script type="application/json" id="atlas">{"generated":"2026-11-26","source":"Fandom FGO Wiki (Event List (US)/Upcoming Events) + Atlas Academy","anchor":{"id":80494,"name":"Smash! Mystery House Crafters - Star Miner and the Wings of Dawn"},"jpDate":"2024-11-13","lagDays":730,"steps":[{"jp":"2024-12-01","n":"Recollection Quest","t":"evento","s":"","d":10,"a":2,"b":2,"k":0,"id":"e80509"},{"jp":"2024-12-11","n":"Christmas 2026","t":"evento","s":"","d":0,"a":10,"b":10,"k":1,"id":"e80506"},{"jp":"2024-12-11","n":"Christmas 2026 · Summoning Campaign 1","ev":"Christmas 2026","t":"banner","s":"Louhi","sv":[{"name":"Louhi","r":5,"cls":"Berserker","lim":0,"i":"S429A1Icon.webp"}],"img":"Christmas_2024_Summoning_Campaign_Banner.png","big":false,"end":"2024-12-24","d":2,"a":0,"b":0,"k":0,"id":"w0"},{"jp":"2024-12-13","n":"Christmas 2026 · Summoning Campaign 2","ev":"Christmas 2026","t":"banner","s":"Sitonai","sv":[{"name":"Sitonai","r":5,"cls":"Alter Ego","lim":1,"i":"S224A1Icon.webp"},{"name":"Daikokuten","r":4,"cls":"Caster","lim":1,"i":"S340A1Icon.webp"}],"img":"Christmas_2024_Summoning_Campaign_2_Banner.png","big":false,"end":"2024-12-20","d":2,"a":0,"b":0,"k":0,"id":"w1"},{"jp":"2024-12-15","n":"Christmas 2026 · Summoning Campaign 3","ev":"Christmas 2026","t":"banner","s":"Sima Yi (Reines)","sv":[{"name":"Sima Yi (Reines)","r":5,"cls":"Rider","lim":1,"i":"S241A1Icon.webp"},{"name":"Wu Zetian","r":4,"cls":"Assassin","lim":0,"i":"S170A1Icon.webp"}],"img":"Christmas_2024_Summoning_Campaign_3_Banner.png","big":false,"end":"2024-12-22","d":2,"a":0,"b":0,"k":0,"id":"w2"},{"jp":"2024-12-17","n":"Christmas 2026 · Summoning Campaign 4","ev":"Christmas 2026","t":"banner","s":"Katsushika Hokusai, Abigail Williams","sv":[{"name":"Katsushika Hokusai","r":5,"cls":"Foreigner","lim":1,"i":"S198A1Icon.webp"},{"name":"Abigail Williams","r":5,"cls":"Foreigner","lim":1,"i":"S195A1Icon.webp"},{"name":"Lancelot (Saber)","r":4,"cls":"Saber","lim":0,"i":"S121A1Icon.webp"},{"name":"Don Quixote","r":4,"cls":"Lancer","lim":0,"i":"S347A1Icon.webp"},{"name":"Lancelot","r":4,"cls":"Berserker","lim":0,"i":"S048A1Icon.webp"},{"name":"Chevalier d'Eon","r":4,"cls":"Saber","lim":0,"i":"S010A1Icon.webp"}],"img":"christmas2024_pu4.png","big":false,"end":"2024-12-24","d":7,"a":0,"b":0,"k":0,"id":"w3"},{"jp":"2024-12-24","n":"Space Phantasmoon","t":"evento","s":"","d":0,"a":6,"b":6,"k":0,"id":"e80507"},{"jp":"2024-12-24","n":"Space Phantasmoon · Summoning Campaign 1","ev":"Space Phantasmoon","t":"banner","s":"Phantasmoon","sv":[{"name":"Phantasmoon","r":5,"cls":"Pretender","lim":1,"i":"S431A1Icon.webp"}],"img":"space_phantasmoon_pu.png","big":false,"end":"2024-12-31","d":7,"a":0,"b":0,"k":0,"id":"w4"},{"jp":"2024-12-31","n":"Winter Casual Mystic Code Quest & Richard I Trial Quest","t":"evento","s":"","d":1,"a":6,"b":6,"k":5,"id":"e80512"},{"jp":"2025-01-01","n":"New Year Campaign 2027 · Summoning Campaign 1","ev":"New Year Campaign 2027","t":"banner","s":"Rerun of 8 5★ servants","sv":[{"name":"Richard I","r":5,"cls":"Saber","lim":1,"i":""},{"name":"Aozaki Aoko","r":5,"cls":"Foreigner","lim":1,"i":""},{"name":"Kyokutei Bakin","r":5,"cls":"Rider","lim":1,"i":""},{"name":"Takasugi Shinsaku","r":5,"cls":"Archer","lim":1,"i":""},{"name":"Miyamoto Musashi (Berserker)","r":5,"cls":"Berserker","lim":1,"i":""},{"name":"Sakamoto Ryōma (Lancer)","r":5,"cls":"Lancer","lim":1,"i":""},{"name":"Miss Crane","r":5,"cls":"Caster","lim":1,"i":""},{"name":"Kuonji Alice","r":5,"cls":"Caster","lim":1,"i":""}],"img":"newyear2025_pu.png","big":true,"end":"2025-01-15","d":10,"a":0,"b":0,"k":0,"id":"w5"},{"jp":"2025-01-11","n":"Recollection Quest","t":"evento","s":"","d":4,"a":10,"b":10,"k":0,"id":"e80515"},{"jp":"2025-01-15","n":"My Little Dragon","t":"evento","s":"","d":0,"a":23,"b":23,"k":4,"id":"e80511"},{"jp":"2025-01-15","n":"My Little Dragon · Summoning Campaign 1","ev":"My Little Dragon","t":"banner","s":"Biscione","sv":[{"name":"Biscione","r":5,"cls":"Lancer","lim":1,"i":"S433A1Icon.webp"},{"name":"Kurohime","r":4,"cls":"Saber","lim":0,"i":"S434A1Icon.webp"}],"img":"my_little_dragon_pu.png","big":false,"end":"2025-02-05","d":17,"a":0,"b":0,"k":0,"id":"w6"},{"jp":"2025-02-01","n":"Main Interlude BB Presents☆Celeb Summer Experience! ~Dubai's Counterattack~","t":"evento","s":"","d":0,"a":17,"b":17,"k":0,"id":"e80518"},{"jp":"2025-02-01","n":"Recollection Quest","t":"evento","s":"","d":11,"a":8,"b":8,"k":0,"id":"e80523"},{"jp":"2025-02-12","n":"Valentine 2027","t":"evento","s":"","d":0,"a":5,"b":5,"k":5,"id":"e80514"},{"jp":"2025-02-12","n":"Valentine 2027 · Summoning Campaign 1","ev":"Valentine 2027","t":"banner","s":"Rerun of 28 5★ servants","sv":[{"name":"Ono no Komachi","r":5,"cls":"Caster","lim":1,"i":""},{"name":"Osakabehime","r":5,"cls":"Assassin","lim":0,"i":""},{"name":"Artoria Pendragon (Lancer)","r":5,"cls":"Lancer","lim":0,"i":""},{"name":"Queen Medb","r":5,"cls":"Rider","lim":0,"i":""},{"name":"Marie Antoinette (Alter)","r":5,"cls":"Avenger","lim":0,"i":""},{"name":"Quetzalcoatl","r":5,"cls":"Rider","lim":0,"i":""},{"name":"Sitonai","r":5,"cls":"Alter Ego","lim":0,"i":""},{"name":"Orion","r":5,"cls":"Archer","lim":0,"i":""},{"name":"Bradamante","r":5,"cls":"Lancer","lim":0,"i":""},{"name":"Anastasia","r":5,"cls":"Caster","lim":0,"i":""},{"name":"Scheherazade","r":5,"cls":"Caster","lim":0,"i":""},{"name":"Xuanzang Sanzang","r":5,"cls":"Caster","lim":0,"i":""},{"name":"Francis Drake","r":5,"cls":"Rider","lim":0,"i":""},{"name":"Altera","r":5,"cls":"Saber","lim":0,"i":""},{"name":"Nitocris (Alter)","r":5,"cls":"Avenger","lim":0,"i":""},{"name":"Galatea","r":5,"cls":"Berserker","lim":0,"i":""},{"name":"Vritra","r":5,"cls":"Lancer","lim":0,"i":""},{"name":"Tamamo no Mae","r":5,"cls":"Caster","lim":0,"i":""},{"name":"Artoria Pendragon","r":5,"cls":"Saber","lim":0,"i":""},{"name":"Jeanne d'Arc","r":5,"cls":"Ruler","lim":0,"i":""},{"name":"Kashin Koji","r":5,"cls":"Assassin","lim":0,"i":""},{"name":"Nightingale","r":5,"cls":"Berserker","lim":0,"i":""},{"name":"Jack the Ripper","r":5,"cls":"Assassin","lim":0,"i":""},{"name":"Mordred","r":5,"cls":"Saber","lim":0,"i":""},{"name":"Jinako Carigiri","r":5,"cls":"Moon Cancer","lim":0,"i":""},{"name":"Europa","r":5,"cls":"Rider","lim":0,"i":""},{"name":"Dioscuri","r":5,"cls":"Saber","lim":0,"i":""},{"name":"Louhi","r":5,"cls":"Berserker","lim":0,"i":""}],"img":"valentine2025_pu.png","big":true,"end":"2025-03-05","d":17,"a":0,"b":0,"k":0,"id":"w7"},{"jp":"2025-03-01","n":"Recollection Quest","t":"evento","s":"","d":4,"a":8,"b":8,"k":0,"id":"e80530"},{"jp":"2025-03-05","n":"His Name is Dante","t":"evento","s":"","d":0,"a":12,"b":12,"k":7,"id":"e80520"},{"jp":"2025-03-05","n":"His Name is Dante · Summoning Campaign 1","ev":"His Name is Dante","t":"banner","s":"Dante Alighieri","sv":[{"name":"Dante Alighieri","r":5,"cls":"Pretender","lim":1,"i":"S437A1Icon.webp"}],"img":"His_Name_is_Dante_Summoning_Campaign_Banner.png","big":false,"end":"2025-03-26","d":2,"a":0,"b":0,"k":0,"id":"w8"},{"jp":"2025-03-07","n":"His Name is Dante · Summoning Campaign 2","ev":"His Name is Dante","t":"banner","s":"James Moriarty","sv":[{"name":"James Moriarty","r":5,"cls":"Archer","lim":1,"i":"S156A1Icon.webp"},{"name":"Siegfried","r":4,"cls":"Saber","lim":0,"i":"S006A1Icon.webp"}],"img":"His_Name_is_Dante_Summoning_Campaign_2_Banner.png","big":false,"end":"2025-03-14","d":2,"a":0,"b":0,"k":0,"id":"w9"},{"jp":"2025-03-09","n":"His Name is Dante · Summoning Campaign 3","ev":"His Name is Dante","t":"banner","s":"Rerun of 18 5★ servants","sv":[{"name":"Cú Chulainn (Alter)","r":5,"cls":"Berserker","lim":0,"i":""},{"name":"Nikola Tesla","r":5,"cls":"Archer","lim":0,"i":""},{"name":"Li Shuwen","r":5,"cls":"Assassin","lim":0,"i":""},{"name":"Bhima","r":5,"cls":"Lancer","lim":0,"i":""},{"name":"Napoléon","r":5,"cls":"Archer","lim":0,"i":""},{"name":"Vlad III","r":5,"cls":"Berserker","lim":0,"i":""},{"name":"Enkidu","r":5,"cls":"Lancer","lim":0,"i":""},{"name":"Minamoto no Tametomo","r":5,"cls":"Archer","lim":0,"i":""},{"name":"Nemo","r":5,"cls":"Rider","lim":0,"i":""},{"name":"Xiang Yu","r":5,"cls":"Berserker","lim":0,"i":""},{"name":"Achilles","r":5,"cls":"Rider","lim":0,"i":""},{"name":"Taigong Wang","r":5,"cls":"Rider","lim":0,"i":""},{"name":"Zhuge Liang (Lord El-Melloi II)","r":5,"cls":"Caster","lim":0,"i":""},{"name":"Karna","r":5,"cls":"Lancer","lim":0,"i":""},{"name":"Arjuna","r":5,"cls":"Archer","lim":0,"i":""},{"name":"Odysseus","r":5,"cls":"Rider","lim":0,"i":""},{"name":"Ozymandias","r":5,"cls":"Rider","lim":0,"i":""},{"name":"Dioscuri","r":5,"cls":"Saber","lim":0,"i":""}],"img":"CBC2025_Pickup_Summoning_Campaign_Banner.png","big":true,"end":"2025-03-19","d":31,"a":0,"b":0,"k":0,"id":"w10"},{"jp":"2025-04-09","n":"31M Downloads Campaign · Summoning Campaign 1","ev":"31M Downloads Campaign","t":"banner","s":"Lady Avalon","sv":[{"name":"Lady Avalon","r":5,"cls":"Pretender","lim":1,"i":"S353A1Icon.webp"},{"name":"Gareth (Saber)","r":4,"cls":"Saber","lim":1,"i":"S354A1Icon.webp"}],"img":"3100man_pu.png","big":false,"end":"2025-04-23","d":21,"a":0,"b":0,"k":0,"id":"w11"},{"jp":"2025-04-30","n":"Trinity Metatronius Chapter Release · Summoning Campaign 1","ev":"Trinity Metatronius Chapter Release","t":"banner","s":"Metatron Jeanne","sv":[{"name":"Metatron Jeanne","r":5,"cls":"Ruler","lim":1,"i":"S438A1Icon.webp"},{"name":"King Ashoka","r":4,"cls":"Lancer","lim":0,"i":"S439A1Icon.webp"}],"img":"TrinityMetatroniusSummon1.png","big":false,"end":"2025-05-14","d":2,"a":0,"b":0,"k":0,"id":"w12"},{"jp":"2025-05-02","n":"Trinity Metatronius Chapter Release · Summoning Campaign 2","ev":"Trinity Metatronius Chapter Release","t":"banner","s":"Amakusa Shirō, James Moriarty (Ruler)","sv":[{"name":"Amakusa Shirō","r":5,"cls":"Ruler","lim":1,"i":"S093A1Icon.webp"},{"name":"James Moriarty (Ruler)","r":5,"cls":"Ruler","lim":1,"i":"S346A1Icon.webp"}],"img":"TrinityMetatroniusSummon2.png","big":false,"end":"2025-05-11","d":5,"a":0,"b":0,"k":0,"id":"w13"},{"jp":"2025-05-07","n":"Trinity Metatronius Chapter Release · Summoning Campaign 3","ev":"Trinity Metatronius Chapter Release","t":"banner","s":"Lilith","sv":[{"name":"Lilith","r":5,"cls":"Berserker","lim":1,"i":"S440A1Icon.webp"},{"name":"King Ashoka","r":4,"cls":"Lancer","lim":0,"i":"S439A1Icon.webp"}],"img":"TrinityMetatroniusSummon3.png","big":false,"end":"2025-05-21","d":2,"a":0,"b":0,"k":0,"id":"w14"},{"jp":"2025-05-09","n":"Trinity Metatronius Chapter Release · Summoning Campaign 4","ev":"Trinity Metatronius Chapter Release","t":"banner","s":"Cleopatra, Popess Johanna, Amor (Caren), Jeanne d'Arc","sv":[{"name":"Cleopatra","r":5,"cls":"Assassin","lim":1,"i":"S139A1Icon.webp"},{"name":"Popess Johanna","r":5,"cls":"Ruler","lim":1,"i":"S374A1Icon.webp"},{"name":"Martha (Ruler)","r":4,"cls":"Ruler","lim":1,"i":"S135A1Icon.webp"},{"name":"Amor (Caren)","r":5,"cls":"Ruler","lim":1,"i":"S305A1Icon.webp"},{"name":"Astraea","r":4,"cls":"Ruler","lim":0,"i":"S242A1Icon.webp"},{"name":"Jeanne d'Arc","r":5,"cls":"Ruler","lim":0,"i":"S059A1Icon.webp"}],"img":"TrinityMetatroniusSummon4.png","big":false,"end":"2025-05-22","d":26,"a":0,"b":0,"k":0,"id":"w15"},{"jp":"2025-06-04","n":"Wings of Lacrimation","t":"evento","s":"","d":0,"a":14,"b":14,"k":5,"id":"e80540"},{"jp":"2025-06-04","n":"Wings of Lacrimation · Summoning Campaign 1","ev":"Wings of Lacrimation","t":"banner","s":"Typhon Ephemeros","sv":[{"name":"Typhon Ephemeros","r":5,"cls":"Pretender","lim":1,"i":"S441A1Icon.webp"}],"img":"Wings_of_Lacrimation_PU.png","big":false,"end":"2025-06-25","d":5,"a":0,"b":0,"k":0,"id":"w16"},{"jp":"2025-06-09","n":"Wings of Lacrimation · Summoning Campaign 2","ev":"Wings of Lacrimation","t":"banner","s":"Zhuge Liang (Lord El-Melloi II), Iskandar, Ptolemaios","sv":[{"name":"Zhuge Liang (Lord El-Melloi II)","r":5,"cls":"Caster","lim":0,"i":"S037A1Icon.webp"},{"name":"Iskandar","r":5,"cls":"Rider","lim":1,"i":"S108A1Icon.webp"},{"name":"Ptolemaios","r":5,"cls":"Archer","lim":1,"i":"S394A1Icon.webp"}],"img":"Wings_of_Lacrimation_PU2.png","big":false,"end":"2025-06-16","d":1,"a":0,"b":0,"k":0,"id":"w17"},{"jp":"2025-06-10","n":"Wings of Lacrimation · Summoning Campaign 3","ev":"Wings of Lacrimation","t":"banner","s":"Ryōgi Shiki (Saber)","sv":[{"name":"Ryōgi Shiki (Saber)","r":5,"cls":"Saber","lim":1,"i":"S091A1Icon.webp"}],"img":"Wings_of_Lacrimation_PU3.png","big":false,"end":"2025-06-17","d":22,"a":0,"b":0,"k":0,"id":"w18"},{"jp":"2025-07-02","n":"Indra's Great Trials","t":"evento","s":"","d":0,"a":8,"b":8,"k":1,"id":"e80549"},{"jp":"2025-07-02","n":"Indra's Great Trials · Summoning Campaign 1","ev":"Indra's Great Trials","t":"banner","s":"Indra","sv":[{"name":"Indra","r":5,"cls":"Lancer","lim":1,"i":"S442A1Icon.webp"}],"img":"Indra_s_Great_Trials_PU_Banner.png","big":false,"end":"2025-07-23","d":3,"a":0,"b":0,"k":0,"id":"w19"},{"jp":"2025-07-05","n":"Indra's Great Trials · Summoning Campaign 2","ev":"Indra's Great Trials","t":"banner","s":"Wandjina","sv":[{"name":"Wandjina","r":5,"cls":"Foreigner","lim":1,"i":"S393A1Icon.webp"}],"img":"Indra_s_Great_Trials_PU_Banner_2.png","big":false,"end":"2025-07-12","d":3,"a":0,"b":0,"k":0,"id":"w20"},{"jp":"2025-07-08","n":"Indra's Great Trials · Summoning Campaign 3","ev":"Indra's Great Trials","t":"banner","s":"Anastasia","sv":[{"name":"Anastasia","r":5,"cls":"Caster","lim":0,"i":"S201A1Icon.webp"},{"name":"Tenochtitlan","r":4,"cls":"Pretender","lim":0,"i":"S372A1Icon.webp"}],"img":"Indra_s_Great_Trials_PU_Banner_3.png","big":false,"end":"2025-07-14","d":1,"a":0,"b":0,"k":0,"id":"w21"},{"jp":"2025-07-09","n":"Indra's Great Trials · Summoning Campaign 4","ev":"Indra's Great Trials","t":"banner","s":"Kingprotea","sv":[{"name":"Kingprotea","r":5,"cls":"Alter Ego","lim":1,"i":"S238A1Icon.webp"}],"img":"Indra_s_Great_Trials_PU_Banner_4.png","big":false,"end":"2025-07-14","d":25,"a":0,"b":0,"k":0,"id":"w22"},{"jp":"2025-08-03","n":"Fate/Grand Order ～10th Anniversary～ · Summoning Campaign 1","ev":"Fate/Grand Order ～10th Anniversary～","t":"banner","s":"U-Olga Marie","sv":[{"name":"U-Olga Marie","r":5,"cls":"Beast","lim":1,"i":"S444A1Icon.webp"}],"img":"FGOFes2025Summon1.png","big":false,"end":"2025-08-17","d":10,"a":0,"b":0,"k":0,"id":"w23"},{"jp":"2025-08-13","n":"Chaldea U-Summer Island","t":"evento","s":"","d":0,"a":29,"b":29,"k":3,"id":"e80558"},{"jp":"2025-08-13","n":"Chaldea U-Summer Island · Summoning Campaign 1","ev":"Chaldea U-Summer Island","t":"banner","s":"Passionlip (Saber)","sv":[{"name":"Passionlip (Saber)","r":5,"cls":"Saber","lim":1,"i":"S445A1Icon.webp"},{"name":"Kriemhild (Rider)","r":4,"cls":"Rider","lim":1,"i":"S446A1Icon.webp"}],"img":"Summer2025_Summon1.png","big":false,"end":"2025-09-03","d":0,"a":0,"b":0,"k":0,"id":"w24"},{"jp":"2025-08-13","n":"Chaldea U-Summer Island · Summoning Campaign 2","ev":"Chaldea U-Summer Island","t":"banner","s":"Tezcatlipoca","sv":[{"name":"Tezcatlipoca","r":5,"cls":"Assassin","lim":1,"i":"S371A1Icon.webp"},{"name":"Saitō Hajime","r":4,"cls":"Saber","lim":1,"i":"S293A1Icon.webp"}],"img":"Summer2025_Summon2.png","big":false,"end":"2025-09-03","d":2,"a":0,"b":0,"k":0,"id":"w25"},{"jp":"2025-08-15","n":"Chaldea U-Summer Island · Summoning Campaign 3","ev":"Chaldea U-Summer Island","t":"banner","s":"Moon Rabbit","sv":[{"name":"Moon Rabbit","r":5,"cls":"Moon Cancer","lim":1,"i":"S448A1Icon.webp"},{"name":"Miyu Edelfelt (Lancer)","r":4,"cls":"Lancer","lim":1,"i":"S449A1Icon.webp"}],"img":"Summer2025_Summon3.png","big":false,"end":"2025-09-03","d":2,"a":0,"b":0,"k":0,"id":"w26"},{"jp":"2025-08-17","n":"Chaldea U-Summer Island · Summoning Campaign 4","ev":"Chaldea U-Summer Island","t":"banner","s":"Larva/Tiamat (Archer)","sv":[{"name":"Larva/Tiamat (Archer)","r":5,"cls":"Archer","lim":1,"i":"S450A1Icon.webp"},{"name":"Jeunesse Crane","r":4,"cls":"Alter Ego","lim":1,"i":"S451A1Icon.webp"}],"img":"Summer2025_Summon4.png","big":false,"end":"2025-09-03","d":3,"a":0,"b":0,"k":0,"id":"w27"},{"jp":"2025-08-20","n":"Chaldea U-Summer Island · Summoning Campaign 5","ev":"Chaldea U-Summer Island","t":"banner","s":"Aesc the Savior","sv":[{"name":"Aesc the Savior","r":5,"cls":"Caster","lim":1,"i":"S385A1Icon.webp"},{"name":"Osakabehime (Archer)","r":4,"cls":"Archer","lim":1,"i":"S262A1Icon.webp"},{"name":"Illyasviel von Einzbern (Archer)","r":4,"cls":"Archer","lim":1,"i":"S286A1Icon.webp"}],"img":"2025summer_pu5.png","big":false,"end":"2025-08-27","d":9,"a":0,"b":0,"k":0,"id":"w28"},{"jp":"2025-08-29","n":"32M Downloads Campaign · Summoning Campaign 1","ev":"32M Downloads Campaign","t":"banner","s":"Morgan","sv":[{"name":"Morgan","r":5,"cls":"Berserker","lim":1,"i":"S309A1Icon.webp"},{"name":"Baobhan Sith","r":4,"cls":"Archer","lim":0,"i":"S311A1Icon.webp"}],"img":"3200man_pu.png","big":false,"end":"2025-09-12","d":7,"a":0,"b":0,"k":0,"id":"w29"},{"jp":"2025-09-05","n":"Vanished Beginning","t":"evento","s":"","d":0,"a":8,"b":8,"k":0,"id":"e80559"},{"jp":"2025-09-05","n":"Vanished Beginning · Summoning Campaign 1","ev":"Vanished Beginning","t":"banner","s":"Nemo/Noah","sv":[{"name":"Nemo/Noah","r":5,"cls":"Rider","lim":1,"i":"S452A1Icon.webp"},{"name":"Circe","r":4,"cls":"Caster","lim":0,"i":"S192A1Icon.webp"}],"img":"vanished_beginning_pu.png","big":false,"end":"2025-09-24","d":2,"a":0,"b":0,"k":0,"id":"w30"},{"jp":"2025-09-07","n":"Vanished Beginning · Summoning Campaign 2","ev":"Vanished Beginning","t":"banner","s":"Beni-Enma, Louhi","sv":[{"name":"Beni-Enma","r":5,"cls":"Saber","lim":1,"i":"S234A1Icon.webp"},{"name":"Louhi","r":5,"cls":"Berserker","lim":0,"i":"S429A1Icon.webp"},{"name":"Circe","r":4,"cls":"Caster","lim":0,"i":"S192A1Icon.webp"}],"img":"vanished_beginning_pu2.png","big":false,"end":"2025-09-24","d":17,"a":0,"b":0,"k":0,"id":"w31"},{"jp":"2025-09-24","n":"GUDAGUDA Shinsengumi The End","t":"evento","s":"","d":0,"a":18,"b":18,"k":3,"id":"e80576"},{"jp":"2025-09-24","n":"GUDAGUDA Shinsengumi The End · Summoning Campaign 1","ev":"GUDAGUDA Shinsengumi The End","t":"banner","s":"Kawakami Gensai","sv":[{"name":"Kawakami Gensai","r":5,"cls":"Assassin","lim":1,"i":"S453A1Icon.webp"},{"name":"Tōdō Heisuke","r":4,"cls":"Avenger","lim":1,"i":"S454A1Icon.webp"}],"img":"shinsengumi_the_end_pu.png","big":false,"end":"2025-10-22","d":2,"a":0,"b":0,"k":0,"id":"w32"},{"jp":"2025-09-26","n":"GUDAGUDA Shinsengumi The End · Summoning Campaign 2","ev":"GUDAGUDA Shinsengumi The End","t":"banner","s":"Hijikata Toshizō, Okita Sōji","sv":[{"name":"Hijikata Toshizō","r":5,"cls":"Berserker","lim":1,"i":"S161A1Icon.webp"},{"name":"Okita Sōji","r":5,"cls":"Saber","lim":1,"i":"S068A1Icon.webp"},{"name":"Saitō Hajime","r":4,"cls":"Saber","lim":1,"i":"S293A1Icon.webp"},{"name":"Yamanami Keisuke","r":4,"cls":"Saber","lim":1,"i":"S363A1Icon.webp"},{"name":"Nagakura Shinpachi","r":4,"cls":"Berserker","lim":1,"i":"S398A1Icon.webp"}],"img":"shinsengumi_the_end_pu2.png","big":false,"end":"2025-10-15","d":5,"a":0,"b":0,"k":0,"id":"w33"},{"jp":"2025-10-01","n":"GUDAGUDA Shinsengumi The End · Summoning Campaign 3","ev":"GUDAGUDA Shinsengumi The End","t":"banner","s":"Kondō Isami","sv":[{"name":"Kondō Isami","r":5,"cls":"Saber","lim":1,"i":"S456A1Icon.webp"},{"name":"Tōdō Heisuke","r":4,"cls":"Avenger","lim":1,"i":"S454A1Icon.webp"}],"img":"shinsengumi_the_end_pu3.png","big":false,"end":"2025-10-15","d":2,"a":0,"b":0,"k":0,"id":"w34"},{"jp":"2025-10-03","n":"GUDAGUDA Shinsengumi The End · Summoning Campaign 4","ev":"GUDAGUDA Shinsengumi The End","t":"banner","s":"Demon King Nobunaga, Sakamoto Ryōma (Lancer)","sv":[{"name":"Demon King Nobunaga","r":5,"cls":"Avenger","lim":1,"i":"S250A1Icon.webp"},{"name":"Sakamoto Ryōma (Lancer)","r":5,"cls":"Lancer","lim":1,"i":"S329A1Icon.webp"}],"img":"shinsengumi_the_end_pu4.png","big":false,"end":"2025-10-12","d":5,"a":0,"b":0,"k":0,"id":"w35"},{"jp":"2025-10-08","n":"33M Downloads Campaign · Summoning Campaign 1","ev":"33M Downloads Campaign","t":"banner","s":"Metatron Jeanne","sv":[{"name":"Metatron Jeanne","r":5,"cls":"Ruler","lim":1,"i":"S438A1Icon.webp"},{"name":"King Ashoka","r":4,"cls":"Lancer","lim":0,"i":"S439A1Icon.webp"}],"img":"3300man_pu.png","big":false,"end":"2025-10-22","d":14,"a":0,"b":0,"k":0,"id":"w36"},{"jp":"2025-10-22","n":"Halloween 2027 Event","t":"evento","s":"","d":0,"a":10,"b":10,"k":5,"id":"e80580"},{"jp":"2025-10-22","n":"Halloween 2027 Event · Summoning Campaign 1","ev":"Halloween 2027 Event","t":"banner","s":"Elizabeth Báthory (SSR)","sv":[{"name":"Elizabeth Báthory (SSR)","r":5,"cls":"Lancer","lim":1,"i":"S457A1Icon.webp"}],"img":"halloween_2025_pu.png","big":false,"end":"2025-11-12","d":2,"a":0,"b":0,"k":0,"id":"w37"},{"jp":"2025-10-24","n":"Halloween 2027 Event · Summoning Campaign 2","ev":"Halloween 2027 Event","t":"banner","s":"Jacques de Molay, Achilles","sv":[{"name":"Jacques de Molay","r":5,"cls":"Foreigner","lim":1,"i":"S324A1Icon.webp"},{"name":"Achilles","r":5,"cls":"Rider","lim":0,"i":"S206A1Icon.webp"},{"name":"Siegfried","r":4,"cls":"Saber","lim":0,"i":"S006A1Icon.webp"},{"name":"Penthesilea","r":4,"cls":"Berserker","lim":0,"i":"S171A1Icon.webp"},{"name":"Kriemhild","r":4,"cls":"Berserker","lim":0,"i":"S345A1Icon.webp"}],"img":"halloween_2025_pu2.png","big":false,"end":"2025-11-12","d":4,"a":0,"b":0,"k":0,"id":"w38"},{"jp":"2025-10-28","n":"Halloween 2027 Event · Summoning Campaign 3","ev":"Halloween 2027 Event","t":"banner","s":"Osakabehime, Vlad III","sv":[{"name":"Osakabehime","r":5,"cls":"Assassin","lim":0,"i":"S189A1Icon.webp"},{"name":"Vlad III","r":5,"cls":"Berserker","lim":0,"i":"S052A1Icon.webp"},{"name":"Watanabe no Tsuna","r":4,"cls":"Saber","lim":0,"i":"S298A1Icon.webp"},{"name":"Carmilla","r":4,"cls":"Assassin","lim":0,"i":"S046A1Icon.webp"}],"img":"halloween_2025_pu3.png","big":false,"end":"2025-11-06","d":53,"a":0,"b":0,"k":0,"id":"w39"},{"jp":"2025-12-20","n":"Final Chapter","t":"evento","s":"","d":11,"a":18,"b":18,"k":0,"id":"e80593"},{"jp":"2025-12-31","n":"Winter Casual Mystic Code Quest Rerun & Lord Logress Trial Quest","t":"evento","s":"","d":1,"a":6,"b":6,"k":5,"id":"e80597"},{"jp":"2026-01-01","n":"New Year Campaign 2028 · Summoning Campaign 1","ev":"New Year Campaign 2028","t":"banner","s":"Rerun of 8 5★ servants","sv":[{"name":"Lord Logres","r":5,"cls":"Saber","lim":1,"i":""},{"name":"Phantasmoon","r":5,"cls":"Pretender","lim":1,"i":""},{"name":"Arjuna (Alter)","r":5,"cls":"Berserker","lim":1,"i":""},{"name":"Biscione","r":5,"cls":"Lancer","lim":1,"i":""},{"name":"Tutankhamun","r":5,"cls":"Archer","lim":1,"i":""},{"name":"Huyan Zhuo","r":5,"cls":"Assassin","lim":1,"i":""},{"name":"Takeda Shingen","r":5,"cls":"Rider","lim":1,"i":""},{"name":"Mélusine (Ruler)","r":5,"cls":"Ruler","lim":1,"i":""}],"img":"newyear2026_pu.png","big":true,"end":"2026-01-14","d":22,"a":0,"b":0,"k":0,"id":"w40"},{"jp":"2026-01-23","n":"Chaldean Floralia","t":"evento","s":"","d":0,"a":15,"b":15,"k":5,"id":"e80599"},{"jp":"2026-01-23","n":"Chaldean Floralia · Summoning Campaign 1","ev":"Chaldean Floralia","t":"banner","s":"Hanasaka no Okina","sv":[{"name":"Hanasaka no Okina","r":5,"cls":"Caster","lim":1,"i":"S462A1Icon.webp"},{"name":"Hebi Nyōbō","r":4,"cls":"Assassin","lim":0,"i":"S463A1Icon.webp"}],"img":"chaldean_floralia_pu.png","big":false,"end":"2026-02-13","d":2,"a":0,"b":0,"k":0,"id":"w41"},{"jp":"2026-01-25","n":"Chaldean Floralia · Summoning Campaign 2","ev":"Chaldean Floralia","t":"banner","s":"Ereshkigal","sv":[{"name":"Ereshkigal","r":5,"cls":"Lancer","lim":1,"i":"S196A1Icon.webp"}],"img":"chaldean_floralia_pu2.png","big":false,"end":"2026-02-13","d":2,"a":0,"b":0,"k":0,"id":"w42"},{"jp":"2026-01-27","n":"Chaldean Floralia · Summoning Campaign 3","ev":"Chaldean Floralia","t":"banner","s":"Katsushika Hokusai","sv":[{"name":"Katsushika Hokusai","r":5,"cls":"Foreigner","lim":1,"i":"S198A1Icon.webp"},{"name":"Nero Claudius","r":4,"cls":"Saber","lim":0,"i":"S005A1Icon.webp"}],"img":"chaldean_floralia_pu3.png","big":false,"end":"2026-02-13","d":2,"a":0,"b":0,"k":0,"id":"w43"},{"jp":"2026-01-29","n":"Chaldean Floralia · Summoning Campaign 4","ev":"Chaldean Floralia","t":"banner","s":"Kazuradrop","sv":[{"name":"Kazuradrop","r":5,"cls":"Alter Ego","lim":1,"i":"S426A1Icon.webp"},{"name":"Mysterious Alter Ego Λ","r":4,"cls":"Lancer","lim":1,"i":"S266A1Icon.webp"}],"img":"chaldean_floralia_pu4.png","big":false,"end":"2026-02-13","d":2,"a":0,"b":0,"k":0,"id":"w44"},{"jp":"2026-01-31","n":"Chaldean Floralia · Summoning Campaign 5","ev":"Chaldean Floralia","t":"banner","s":"Xiang Yu","sv":[{"name":"Xiang Yu","r":5,"cls":"Berserker","lim":0,"i":"S226A1Icon.webp"},{"name":"Consort Yu","r":4,"cls":"Assassin","lim":0,"i":"S230A1Icon.webp"}],"img":"chaldean_floralia_pu5.png","big":false,"end":"2026-02-13","d":13,"a":0,"b":0,"k":0,"id":"w45"},{"jp":"2026-02-13","n":"Valentine 2028","t":"evento","s":"","d":0,"a":3,"b":3,"k":5,"id":"e80603"},{"jp":"2026-02-13","n":"Valentine 2028 · Summoning Campaign 1","ev":"Valentine 2028","t":"banner","s":"Rerun of 28 5★ servants","sv":[{"name":"Demeter","r":5,"cls":"Lancer","lim":1,"i":""},{"name":"Artoria Pendragon (Lancer)","r":5,"cls":"Lancer","lim":0,"i":""},{"name":"Queen Medb","r":5,"cls":"Rider","lim":0,"i":""},{"name":"Marie Antoinette (Alter)","r":5,"cls":"Avenger","lim":0,"i":""},{"name":"Quetzalcoatl","r":5,"cls":"Rider","lim":0,"i":""},{"name":"Sitonai","r":5,"cls":"Alter Ego","lim":0,"i":""},{"name":"Orion","r":5,"cls":"Archer","lim":0,"i":""},{"name":"Bradamante","r":5,"cls":"Lancer","lim":0,"i":""},{"name":"Anastasia","r":5,"cls":"Caster","lim":0,"i":""},{"name":"Scheherazade","r":5,"cls":"Caster","lim":0,"i":""},{"name":"Xuanzang Sanzang","r":5,"cls":"Caster","lim":0,"i":""},{"name":"Francis Drake","r":5,"cls":"Rider","lim":0,"i":""},{"name":"Altera","r":5,"cls":"Saber","lim":0,"i":""},{"name":"Nitocris (Alter)","r":5,"cls":"Avenger","lim":0,"i":""},{"name":"Galatea","r":5,"cls":"Berserker","lim":0,"i":""},{"name":"Vritra","r":5,"cls":"Lancer","lim":0,"i":""},{"name":"Tamamo no Mae","r":5,"cls":"Caster","lim":0,"i":""},{"name":"Artoria Pendragon","r":5,"cls":"Saber","lim":0,"i":""},{"name":"Jeanne d'Arc","r":5,"cls":"Ruler","lim":0,"i":""},{"name":"Osakabehime","r":5,"cls":"Assassin","lim":0,"i":""},{"name":"Kashin Koji","r":5,"cls":"Assassin","lim":0,"i":""},{"name":"Nightingale","r":5,"cls":"Berserker","lim":0,"i":""},{"name":"Jack the Ripper","r":5,"cls":"Assassin","lim":0,"i":""},{"name":"Mordred","r":5,"cls":"Saber","lim":0,"i":""},{"name":"Jinako Carigiri","r":5,"cls":"Moon Cancer","lim":0,"i":""},{"name":"Europa","r":5,"cls":"Rider","lim":0,"i":""},{"name":"Dioscuri","r":5,"cls":"Saber","lim":0,"i":""},{"name":"Louhi","r":5,"cls":"Berserker","lim":0,"i":""}],"img":"valentine2026_pu.png","big":true,"end":"2026-03-06","d":26,"a":0,"b":0,"k":0,"id":"w46"},{"jp":"2026-03-11","n":"My Kind of Abduction","t":"evento","s":"","d":0,"a":7,"b":7,"k":7,"id":"e80604"},{"jp":"2026-03-11","n":"My Kind of Abduction · Summoning Campaign 1","ev":"My Kind of Abduction","t":"banner","s":"Jacques de Molay (Saber)","sv":[{"name":"Jacques de Molay (Saber)","r":5,"cls":"Saber","lim":1,"i":"S466A1Icon.webp"}],"img":"Cbc_2026_event_pu1.png","big":false,"end":"2026-03-25","d":2,"a":0,"b":0,"k":0,"id":"w47"},{"jp":"2026-03-13","n":"My Kind of Abduction · Summoning Campaign 2","ev":"My Kind of Abduction","t":"banner","s":"Jacques de Molay, Napoléon, Henry Jekyll & Hyde","sv":[{"name":"Jacques de Molay","r":5,"cls":"Foreigner","lim":1,"i":"S324A1Icon.webp"},{"name":"Napoléon","r":5,"cls":"Archer","lim":0,"i":"S212A1Icon.webp"},{"name":"Henry Jekyll & Hyde","r":5,"cls":"Assassin","lim":0,"i":"S081A1Icon.webp"}],"img":"Cbc_2026_event_pu2.png","big":false,"end":"2026-03-25","d":6,"a":0,"b":0,"k":0,"id":"w48"},{"jp":"2026-03-19","n":"Water Monster Crisis Rerun (Lite)","t":"evento","s":"","d":20,"a":30,"b":30,"k":0,"id":"e80606"},{"jp":"2026-04-08","n":"34M Downloads Campaign · Summoning Campaign 1","ev":"34M Downloads Campaign","t":"banner","s":"Scáthach-Skaði (Ruler), Space Ishtar, Ashiya Dōman, Larva/Tiamat, Yang Guifei","sv":[{"name":"Scáthach-Skaði (Ruler)","r":5,"cls":"Ruler","lim":1,"i":"S357A1Icon.webp"},{"name":"Space Ishtar","r":5,"cls":"Avenger","lim":1,"i":"S268A1Icon.webp"},{"name":"Ashiya Dōman","r":5,"cls":"Alter Ego","lim":1,"i":"S297A1Icon.webp"},{"name":"Larva/Tiamat","r":5,"cls":"Alter Ego","lim":1,"i":"S376A1Icon.webp"},{"name":"Yang Guifei","r":5,"cls":"Foreigner","lim":1,"i":"S275A1Icon.webp"}],"img":"3400man_pu.png","big":false,"end":"2026-04-22","d":17,"a":0,"b":0,"k":0,"id":"w49"},{"jp":"2026-04-25","n":"Fate/strange Fake Collaboration Event","t":"evento","s":"","d":0,"a":38,"b":38,"k":3,"id":"e80608"},{"jp":"2026-04-25","n":"Fate/strange Fake Collaboration Event · Summoning Campaign 1","ev":"Fate/strange Fake Collaboration Event","t":"banner","s":"François Prelati (Francesca Prelati)","sv":[{"name":"François Prelati (Francesca Prelati)","r":5,"cls":"Caster","lim":1,"i":"S467A1Icon.webp"}],"img":"FSF_Collab_PU_Banner_1.png","big":false,"end":"2026-05-16","d":2,"a":0,"b":0,"k":0,"id":"w50"},{"jp":"2026-04-27","n":"Fate/strange Fake Collaboration Event · Summoning Campaign 2","ev":"Fate/strange Fake Collaboration Event","t":"banner","s":"Richard I, Zhuge Liang (Lord El-Melloi II)","sv":[{"name":"Richard I","r":5,"cls":"Saber","lim":1,"i":"S432A1Icon.webp"},{"name":"Zhuge Liang (Lord El-Melloi II)","r":5,"cls":"Caster","lim":0,"i":"S037A1Icon.webp"},{"name":"Penthesilea","r":4,"cls":"Berserker","lim":0,"i":"S171A1Icon.webp"}],"img":"FSF_Collab_PU_Banner_2.png","big":false,"end":"2026-05-16","d":2,"a":0,"b":0,"k":0,"id":"w51"},{"jp":"2026-04-29","n":"Fate/strange Fake Collaboration Event · Summoning Campaign 3","ev":"Fate/strange Fake Collaboration Event","t":"banner","s":"Popess Johanna","sv":[{"name":"Popess Johanna","r":5,"cls":"Ruler","lim":1,"i":"S374A1Icon.webp"}],"img":"FSF_Collab_PU_Banner_3.png","big":false,"end":"2026-05-16","d":3,"a":0,"b":0,"k":0,"id":"w52"},{"jp":"2026-05-02","n":"Fate/strange Fake Collaboration Event · Summoning Campaign 4","ev":"Fate/strange Fake Collaboration Event","t":"banner","s":"John Lackland","sv":[{"name":"John Lackland","r":5,"cls":"Avenger","lim":1,"i":"S469A1Icon.webp"}],"img":"FSF_Collab_PU_Banner_4.png","big":false,"end":"2026-05-16","d":2,"a":0,"b":0,"k":0,"id":"w53"},{"jp":"2026-05-04","n":"Fate/strange Fake Collaboration Event · Summoning Campaign 5","ev":"Fate/strange Fake Collaboration Event","t":"banner","s":"Typhon Ephemeros, Jack the Ripper","sv":[{"name":"Typhon Ephemeros","r":5,"cls":"Pretender","lim":1,"i":"S441A1Icon.webp"},{"name":"Jack the Ripper","r":5,"cls":"Assassin","lim":0,"i":"S075A1Icon.webp"},{"name":"Gilgamesh (Caster)","r":4,"cls":"Caster","lim":0,"i":"S145A1Icon.webp"}],"img":"FSF_Collab_PU_Banner_5.png","big":false,"end":"2026-05-16","d":2,"a":0,"b":0,"k":0,"id":"w54"},{"jp":"2026-05-06","n":"Fate/strange Fake Collaboration Event · Summoning Campaign 6","ev":"Fate/strange Fake Collaboration Event","t":"banner","s":"Ptolemaios, Ishtar","sv":[{"name":"Ptolemaios","r":5,"cls":"Archer","lim":1,"i":"S394A1Icon.webp"},{"name":"Ishtar","r":5,"cls":"Archer","lim":1,"i":"S142A1Icon.webp"},{"name":"Heracles","r":4,"cls":"Berserker","lim":0,"i":"S047A1Icon.webp"}],"img":"FSF_Collab_PU_Banner_6.png","big":false,"end":"2026-05-16","d":28,"a":0,"b":0,"k":0,"id":"w55"},{"jp":"2026-06-03","n":"Past Chaldea Chapter Release · Summoning Campaign 1","ev":"Past Chaldea Chapter Release","t":"banner","s":"Archer of the Apocalypse","sv":[{"name":"Archer of the Apocalypse","r":5,"cls":"Archer","lim":1,"i":"S237A1Icon.webp"}],"img":"PastChaldeaSummon1.png","big":false,"end":"2026-06-24","d":2,"a":0,"b":0,"k":0,"id":"w56"},{"jp":"2026-06-05","n":"Past Chaldea Chapter Release · Summoning Campaign 2","ev":"Past Chaldea Chapter Release","t":"banner","s":"Murasaki Shikibu, Miss Crane","sv":[{"name":"Murasaki Shikibu","r":5,"cls":"Caster","lim":1,"i":"S237A1Icon.webp"},{"name":"Miss Crane","r":5,"cls":"Caster","lim":1,"i":"S307A1Icon.webp"}],"img":"PastChaldeaSummon2.png","big":false,"end":"2026-06-24","d":7,"a":0,"b":0,"k":0,"id":"w57"},{"jp":"2026-06-12","n":"Records of the Enma-Tei's Prosperity (Summer Prep Edition)","t":"evento","s":"","d":0,"a":20,"b":20,"k":3,"id":"e80611"},{"jp":"2026-06-12","n":"Records of the Enma-Tei's Prosperity (Summer Prep Edition) · Summoning Campaign 1","ev":"Records of the Enma-Tei's Prosperity (Summer Prep Edition)","t":"banner","s":"Rerun of 7 5★ servants","sv":[{"name":"Beni-Enma","r":5,"cls":"Saber","lim":1,"i":""},{"name":"Tamamo no Mae","r":5,"cls":"Caster","lim":0,"i":""},{"name":"Yang Guifei","r":5,"cls":"Foreigner","lim":1,"i":""},{"name":"Miyamoto Musashi (Berserker)","r":5,"cls":"Berserker","lim":1,"i":""},{"name":"Jeanne d'Arc (Archer)","r":5,"cls":"Archer","lim":1,"i":""},{"name":"Artoria Pendragon (Rider Alter)","r":5,"cls":"Rider","lim":1,"i":""},{"name":"Tamamo no Mae (Lancer)","r":5,"cls":"Lancer","lim":1,"i":""}],"img":"Enma-tei_pre_summer_pickup.png","big":true,"end":"2026-06-26","d":19,"a":0,"b":0,"k":0,"id":"w58"},{"jp":"2026-07-01","n":"Waiting for You at the End of Spring","t":"evento","s":"","d":0,"a":16,"b":16,"k":5,"id":"e80612"},{"jp":"2026-07-01","n":"Waiting for You at the End of Spring · Summoning Campaign 1","ev":"Waiting for You at the End of Spring","t":"banner","s":"Ascalaphus","sv":[{"name":"Ascalaphus","r":5,"cls":"Alter Ego","lim":1,"i":"S471A1Icon.webp"}],"img":"waiting_for_you_pu.png","big":false,"end":"2026-07-22","d":2,"a":0,"b":0,"k":0,"id":"w59"},{"jp":"2026-07-03","n":"Waiting for You at the End of Spring · Summoning Campaign 2","ev":"Waiting for You at the End of Spring","t":"banner","s":"Demeter","sv":[{"name":"Demeter","r":5,"cls":"Lancer","lim":1,"i":"S465A1Icon.webp"}],"img":"waiting_for_you_pu2.png","big":false,"end":"2026-07-22","d":2,"a":0,"b":0,"k":0,"id":"w60"},{"jp":"2026-07-05","n":"Waiting for You at the End of Spring · Summoning Campaign 3","ev":"Waiting for You at the End of Spring","t":"banner","s":"Senji Muramasa, Sima Yi (Reines), Artoria Pendragon (Lancer), Francis Drake","sv":[{"name":"Senji Muramasa","r":5,"cls":"Saber","lim":1,"i":"S302A1Icon.webp"},{"name":"Atalanta","r":4,"cls":"","lim":0,"i":"S014A1Icon.webp"},{"name":"Sima Yi (Reines)","r":5,"cls":"Rider","lim":1,"i":"S241A1Icon.webp"},{"name":"Artoria Pendragon (Lancer)","r":5,"cls":"Lancer","lim":0,"i":"S119A1Icon.webp"},{"name":"Alessandro di Cagliostro","r":4,"cls":"","lim":0,"i":"S410A1Icon.webp"},{"name":"Francis Drake","r":5,"cls":"Rider","lim":0,"i":"S065A1Icon.webp"}],"img":"waiting_for_you_pu3.png","big":false,"end":"2026-07-22","d":2,"a":0,"b":0,"k":0,"id":"w61"},{"jp":"2026-07-07","n":"Waiting for You at the End of Spring · Summoning Campaign 4","ev":"Waiting for You at the End of Spring","t":"banner","s":"Arthur Pendragon (Prototype), Nightingale, BB Dubai","sv":[{"name":"Arthur Pendragon (Prototype)","r":5,"cls":"Saber","lim":1,"i":"S160A1Icon.webp"},{"name":"Baobhan Sith","r":4,"cls":"Archer","lim":0,"i":"S311A1Icon.webp"},{"name":"Nightingale","r":5,"cls":"Berserker","lim":0,"i":"S097A1Icon.webp"},{"name":"BB Dubai","r":5,"cls":"Moon Cancer","lim":1,"i":"S421A1Icon.webp"},{"name":"Tomoe Gozen (Saber)","r":4,"cls":"Saber","lim":1,"i":"S290A1Icon.webp"}],"img":"waiting_for_you_pu4.png","big":false,"end":"2026-07-22","d":25,"a":0,"b":0,"k":0,"id":"w62"},{"jp":"2026-08-01","n":"Fate/Grand Order ～11th Anniversary～","t":"evento","s":"","d":1,"a":22,"b":22,"k":6,"id":"e80613"},{"jp":"2026-08-02","n":"Fate/Grand Order ～11th Anniversary～ · Summoning Campaign 1","ev":"Fate/Grand Order ～11th Anniversary～","t":"banner","s":"Hassan-i-Sabbah (Azrael)","sv":[{"name":"Hassan-i-Sabbah (Azrael)","r":5,"cls":"Assassin","lim":1,"i":"S474A1Icon.webp"}],"img":"FGOFes2026Summon1.png","big":false,"end":"2026-08-23","d":3,"a":0,"b":0,"k":0,"id":"w63"},{"jp":"2026-08-05","n":"Fate/Grand Order ～11th Anniversary～ · Summoning Campaign 2","ev":"Fate/Grand Order ～11th Anniversary～","t":"banner","s":"Rerun of 7 5★ servants","sv":[{"name":"Astolfo (Saber)","r":5,"cls":"Saber","lim":1,"i":""},{"name":"Brynhildr","r":5,"cls":"Lancer","lim":1,"i":""},{"name":"Iskandar","r":5,"cls":"Rider","lim":1,"i":""},{"name":"Aesc the Savior","r":5,"cls":"Caster","lim":1,"i":""},{"name":"Okita Sōji (Alter)","r":5,"cls":"Alter Ego","lim":1,"i":""},{"name":"Sesshōin Kiara (Moon Cancer)","r":5,"cls":"Moon Cancer","lim":1,"i":""},{"name":"Cú Chulainn (Alter)","r":5,"cls":"Berserker","lim":0,"i":""}],"img":"FGOFes2026Summon2.png","big":true,"end":"2026-08-12","d":7,"a":0,"b":0,"k":0,"id":"w64"},{"jp":"2026-08-12","n":"Chaldea Great Southern Sea Showdown!","t":"evento","s":"","d":0,"a":18,"b":18,"k":3,"id":"e80614"},{"jp":"2026-08-12","n":"Chaldea Great Southern Sea Showdown! · Summoning Campaign 1","ev":"Chaldea Great Southern Sea Showdown!","t":"banner","s":"Beni-Enma (Berserker), Kingprotea (Moon Cancer)","sv":[{"name":"Beni-Enma (Berserker)","r":5,"cls":"Berserker","lim":1,"i":"S475A1Icon.webp"},{"name":"Biscione (Caster)","r":4,"cls":"","lim":1,"i":"S477A1Icon.webp"},{"name":"Kingprotea (Moon Cancer)","r":5,"cls":"Moon Cancer","lim":1,"i":"S476A1Icon.webp"}],"img":"Summer2026Summon1.png","big":false,"end":"2026-09-02","d":0,"a":0,"b":0,"k":0,"id":"w65"},{"jp":"2026-08-12","n":"Chaldea Great Southern Sea Showdown! · Summoning Campaign 2","ev":"Chaldea Great Southern Sea Showdown!","t":"banner","s":"Dante Alighieri","sv":[{"name":"Dante Alighieri","r":5,"cls":"Pretender","lim":0,"i":"S437A1Icon.webp"},{"name":"Hassan of the Shining Star","r":4,"cls":"Assassin","lim":0,"i":"S408A1Icon.webp"}],"img":"Summer2026Summon2.png","big":false,"end":"2026-09-02","d":2,"a":0,"b":0,"k":0,"id":"w66"},{"jp":"2026-08-14","n":"Chaldea Great Southern Sea Showdown! · Summoning Campaign 3","ev":"Chaldea Great Southern Sea Showdown!","t":"banner","s":"Kingprotea Alter, Lilith (Rider)","sv":[{"name":"Kingprotea Alter","r":5,"cls":"Avenger","lim":1,"i":"S479A1Icon.webp"},{"name":"Ono no Komachi (Archer)","r":4,"cls":"","lim":1,"i":"S480A1Icon.webp"},{"name":"Lilith (Rider)","r":5,"cls":"Rider","lim":1,"i":"S478A1Icon.webp"}],"img":"Summer2026Summon3.png","big":false,"end":"2026-09-02","d":0,"a":0,"b":0,"k":0,"id":"w67"},{"jp":"2026-08-14","n":"Chaldea Great Southern Sea Showdown! · Summoning Campaign 4","ev":"Chaldea Great Southern Sea Showdown!","t":"banner","s":"Kingprotea","sv":[{"name":"Kingprotea","r":5,"cls":"","lim":1,"i":"S238A1Icon.webp"},{"name":"Biscione (Caster)","r":4,"cls":"Caster","lim":1,"i":"S477A1Icon.webp"},{"name":"Ono no Komachi (Archer)","r":4,"cls":"Archer","lim":1,"i":"S480A1Icon.webp"}],"img":"Summer2026Summon4.png","big":false,"end":"2026-09-02","d":5,"a":0,"b":0,"k":0,"id":"w68"},{"jp":"2026-08-19","n":"Chaldea Great Southern Sea Showdown! · Summoning Campaign 5","ev":"Chaldea Great Southern Sea Showdown!","t":"banner","s":"Osakabehime, Andromeda","sv":[{"name":"Osakabehime","r":5,"cls":"Assassin","lim":0,"i":"S189A1Icon.webp"},{"name":"Suzuka Gozen (Vacay)","r":4,"cls":"Rider","lim":1,"i":"S387A1Icon.webp"},{"name":"Andromeda","r":5,"cls":"Rider","lim":1,"i":"S406A1Icon.webp"},{"name":"Frankenstein (Saber)","r":4,"cls":"Saber","lim":1,"i":"S176A1Icon.webp"}],"img":"Summer2026Summon5.png","big":false,"end":"2026-09-02","d":14,"a":0,"b":0,"k":0,"id":"w69"},{"jp":"2026-09-02","n":"35M Downloads Campaign · Summoning Campaign 1","ev":"35M Downloads Campaign","t":"banner","s":"Artoria Caster (Berserker), Passionlip (Saber), Larva/Tiamat (Archer), Mélusine (Ruler), BB (Summer), Moon Rabbit","sv":[{"name":"Artoria Caster (Berserker)","r":5,"cls":"Berserker","lim":1,"i":"S386A1Icon.webp"},{"name":"Cait Cú Cerpriestess","r":4,"cls":"Pretender","lim":1,"i":"S392A1Icon.webp"},{"name":"Passionlip (Saber)","r":5,"cls":"Saber","lim":1,"i":"S445A1Icon.webp"},{"name":"Chloe von Einzbern (Avenger)","r":4,"cls":"Avenger","lim":1,"i":"S388A1Icon.webp"},{"name":"Larva/Tiamat (Archer)","r":5,"cls":"Archer","lim":1,"i":"S450A1Icon.webp"},{"name":"Utsumi Erice (Avenger)","r":4,"cls":"Avenger","lim":1,"i":"S356A1Icon.webp"},{"name":"Mélusine (Ruler)","r":5,"cls":"Ruler","lim":1,"i":"S390A1Icon.webp"},{"name":"Dobrynya Nikitich (Lancer)","r":4,"cls":"Lancer","lim":1,"i":"S419A1Icon.webp"},{"name":"BB (Summer)","r":5,"cls":"Moon Cancer","lim":1,"i":"S220A1Icon.webp"},{"name":"Charlotte Corday (Caster)","r":4,"cls":"Caster","lim":1,"i":"S319A1Icon.webp"},{"name":"Moon Rabbit","r":5,"cls":"Moon Cancer","lim":1,"i":"S448A1Icon.webp"},{"name":"Caenis (Rider)","r":4,"cls":"Rider","lim":1,"i":"S322A1Icon.webp"}],"img":"3500man_pu.png","big":false,"end":"2026-09-16","d":14,"a":0,"b":0,"k":0,"id":"w70"},{"jp":"2026-09-16","n":"Halloween 2028 Event","t":"evento","s":"","d":0,"a":15,"b":15,"k":5,"id":"e80627"},{"jp":"2026-09-16","n":"Halloween 2028 Event · Summoning Campaign 1","ev":"Halloween 2028 Event","t":"banner","s":"Daedalus","sv":[{"name":"Daedalus","r":5,"cls":"Berserker","lim":1,"i":"S482A1Icon.webp"}],"img":"halloween2026_pu1.png","big":false,"end":"2026-10-07","d":2,"a":0,"b":0,"k":0,"id":"w75"},{"jp":"2026-09-18","n":"Halloween 2028 Event · Summoning Campaign 2","ev":"Halloween 2028 Event","t":"banner","s":"Tutankhamun, Jack the Ripper, Kukulkan","sv":[{"name":"Tutankhamun","r":5,"cls":"Archer","lim":1,"i":"S427A1Icon.webp"},{"name":"Watanabe no Tsuna","r":4,"cls":"Saber","lim":0,"i":"S298A1Icon.webp"},{"name":"Jack the Ripper","r":5,"cls":"Assassin","lim":0,"i":"S075A1Icon.webp"},{"name":"Baobhan Sith","r":4,"cls":"","lim":0,"i":"S311A1Icon.webp"},{"name":"Kukulkan","r":5,"cls":"Foreigner","lim":1,"i":"S373A1Icon.webp"}],"img":"halloween2026_pu2.png","big":false,"end":"2026-10-07","d":2,"a":0,"b":0,"k":0,"id":"w76"},{"jp":"2026-09-20","n":"Halloween 2028 Event · Summoning Campaign 3","ev":"Halloween 2028 Event","t":"banner","s":"Morgan, Quetzalcoatl","sv":[{"name":"Morgan","r":5,"cls":"Berserker","lim":1,"i":"S309A1Icon.webp"},{"name":"Minamoto no Raikō (Lancer)","r":4,"cls":"","lim":1,"i":"S181A1Icon.webp"},{"name":"Quetzalcoatl","r":5,"cls":"Rider","lim":0,"i":"S144A1Icon.webp"}],"img":"halloween2026_pu3.png","big":false,"end":"2026-10-07","d":2,"a":0,"b":0,"k":0,"id":"w77"},{"jp":"2026-09-22","n":"Halloween 2028 Event · Summoning Campaign 4","ev":"Halloween 2028 Event","t":"banner","s":"Kashin Koji, Abigail Williams (Summer)","sv":[{"name":"Kashin Koji","r":5,"cls":"Assassin","lim":0,"i":"S380A1Icon.webp"},{"name":"Minamoto no Raikō (Lancer)","r":4,"cls":"","lim":1,"i":"S181A1Icon.webp"},{"name":"Abigail Williams (Summer)","r":5,"cls":"Foreigner","lim":1,"i":"S289A1Icon.webp"}],"img":"halloween2026_pu4.png","big":false,"end":"2026-10-07","d":22,"a":0,"b":0,"k":0,"id":"w78"},{"jp":"2026-10-14","n":"Waxing Moon Clashing Swords Chronicles Rerun","t":"evento","s":"","d":0,"a":17,"b":17,"k":2,"id":"e80632"},{"jp":"2026-10-14","n":"Waxing Moon Clashing Swords Chronicles Rerun · Summoning Campaign 1","ev":"Waxing Moon Clashing Swords Chronicles Rerun","t":"banner","s":"Yamato Takeru","sv":[{"name":"Yamato Takeru","r":5,"cls":"Saber","lim":1,"i":"S402A1Icon.webp"},{"name":"Yui Shōsetsu","r":4,"cls":"Caster","lim":1,"i":"S404A1Icon.webp"}],"img":"re_sr_collaboration_pu.png","big":false,"end":"2026-11-04","d":0,"a":0,"b":0,"k":0,"id":"w71"},{"jp":"2026-10-14","n":"Waxing Moon Clashing Swords Chronicles Rerun · Summoning Campaign 2","ev":"Waxing Moon Clashing Swords Chronicles Rerun","t":"banner","s":"Jeanne d'Arc (Alter), Jeanne d'Arc","sv":[{"name":"Jeanne d'Arc (Alter)","r":5,"cls":"Avenger","lim":1,"i":"S106A1Icon.webp"},{"name":"Yui Shōsetsu","r":4,"cls":"","lim":1,"i":"S404A1Icon.webp"},{"name":"Jeanne d'Arc","r":5,"cls":"Ruler","lim":0,"i":"S059A1Icon.webp"}],"img":"re_sr_collaboration_pu2.png","big":false,"end":"2026-11-04","d":2,"a":0,"b":0,"k":0,"id":"w72"},{"jp":"2026-10-16","n":"Waxing Moon Clashing Swords Chronicles Rerun · Summoning Campaign 3","ev":"Waxing Moon Clashing Swords Chronicles Rerun","t":"banner","s":"Ushi Gozen","sv":[{"name":"Ushi Gozen","r":5,"cls":"Avenger","lim":1,"i":"S403A1Icon.webp"},{"name":"Yui Shōsetsu","r":4,"cls":"Caster","lim":1,"i":"S404A1Icon.webp"}],"img":"re_sr_collaboration_pu3.png","big":false,"end":"2026-11-04","d":0,"a":0,"b":0,"k":0,"id":"w73"},{"jp":"2026-10-16","n":"Waxing Moon Clashing Swords Chronicles Rerun · Summoning Campaign 4","ev":"Waxing Moon Clashing Swords Chronicles Rerun","t":"banner","s":"Miyamoto Musashi, Gilgamesh, Odysseus, Arjuna, Li Shuwen","sv":[{"name":"Miyamoto Musashi","r":5,"cls":"Saber","lim":1,"i":"S153A1Icon.webp"},{"name":"Yui Shōsetsu","r":4,"cls":"Caster","lim":1,"i":"S404A1Icon.webp"},{"name":"Gilgamesh","r":5,"cls":"Archer","lim":1,"i":"S012A1Icon.webp"},{"name":"Tamamo Cat","r":4,"cls":"Berserker","lim":0,"i":"S058A1Icon.webp"},{"name":"Odysseus","r":5,"cls":"Rider","lim":0,"i":"S277A1Icon.webp"},{"name":"Circe","r":4,"cls":"Caster","lim":0,"i":"S192A1Icon.webp"},{"name":"Arjuna","r":5,"cls":"Archer","lim":0,"i":"S084A1Icon.webp"},{"name":"Aśvatthāman","r":4,"cls":"Archer","lim":0,"i":"S248A1Icon.webp"},{"name":"Li Shuwen","r":5,"cls":"Assassin","lim":0,"i":"S235A1Icon.webp"},{"name":"Li Shuwen (Lancer)","r":4,"cls":"Lancer","lim":0,"i":"S102A1Icon.webp"}],"img":"re_sr_collaboration_pu4.png","big":false,"end":"2026-11-04","d":26,"a":0,"b":0,"k":0,"id":"w74"},{"jp":"2026-11-11","n":"GUDAGUDA Puni Puni Wars!","t":"evento","s":"","d":0,"a":9,"b":9,"k":5,"id":"e80639"},{"jp":"2026-11-11","n":"GUDAGUDA Puni Puni Wars! · Summoning Campaign 1","ev":"GUDAGUDA Puni Puni Wars!","t":"banner","s":"Himiko & Iyo","sv":[{"name":"Himiko & Iyo","r":5,"cls":"Pretender","lim":1,"i":"S484A1Icon.webp"},{"name":"Saika Magoichi (Rider)","r":4,"cls":"Rider","lim":1,"i":"S485A1Icon.webp"}],"img":"2026gudaguda_pu.png","big":false,"end":"2026-12-02","d":2,"a":0,"b":0,"k":0,"id":"w79"},{"jp":"2026-11-13","n":"GUDAGUDA Puni Puni Wars! · Summoning Campaign 2","ev":"GUDAGUDA Puni Puni Wars!","t":"banner","s":"Takasugi Shinsaku, Okita Sōji (Saber Alter)","sv":[{"name":"Takasugi Shinsaku","r":5,"cls":"Archer","lim":1,"i":"S375A1Icon.webp"},{"name":"Saitō Hajime","r":4,"cls":"Saber","lim":1,"i":"S293A1Icon.webp"},{"name":"Okita Sōji (Saber Alter)","r":5,"cls":"Saber","lim":1,"i":"S317A1Icon.webp"},{"name":"Okita J Sōji","r":4,"cls":"Assassin","lim":1,"i":"S267A1Icon.webp"}],"img":"2026gudaguda_pu2.png","big":false,"end":"2026-12-02","d":3,"a":0,"b":0,"k":0,"id":"w80"},{"jp":"2026-11-16","n":"GUDAGUDA Puni Puni Wars! · Summoning Campaign 3","ev":"GUDAGUDA Puni Puni Wars!","t":"banner","s":"Dynamite Rikyū","sv":[{"name":"Dynamite Rikyū","r":5,"cls":"Foreigner","lim":1,"i":"S487A1Icon.webp"},{"name":"Saika Magoichi (Rider)","r":4,"cls":"Rider","lim":1,"i":"S485A1Icon.webp"}],"img":"2026gudaguda_pu3.png","big":false,"end":"2026-12-02","d":2,"a":0,"b":0,"k":0,"id":"w81"},{"jp":"2026-11-18","n":"GUDAGUDA Puni Puni Wars! · Summoning Campaign 4","ev":"GUDAGUDA Puni Puni Wars!","t":"banner","s":"Sen no Rikyū, Izumo no Okuni, Uesugi Kenshin, Takeda Shingen, Sakamoto Ryōma (Lancer)","sv":[{"name":"Sen no Rikyū","r":5,"cls":"Berserker","lim":1,"i":"S362A1Icon.webp"},{"name":"Saika Magoichi (Rider)","r":4,"cls":"Rider","lim":1,"i":"S485A1Icon.webp"},{"name":"Izumo no Okuni","r":5,"cls":"Caster","lim":1,"i":"S327A1Icon.webp"},{"name":"Okita J Sōji","r":4,"cls":"","lim":1,"i":"S267A1Icon.webp"},{"name":"Uesugi Kenshin","r":5,"cls":"Ruler","lim":1,"i":"S400A1Icon.webp"},{"name":"Takeda Shingen","r":5,"cls":"Rider","lim":1,"i":"S397A1Icon.webp"},{"name":"Saitō Hajime","r":4,"cls":"","lim":1,"i":"S293A1Icon.webp"},{"name":"Sakamoto Ryōma (Lancer)","r":5,"cls":"Lancer","lim":1,"i":"S329A1Icon.webp"}],"img":"2026gudaguda_pu4.png","big":false,"end":"2026-12-02","d":14,"a":0,"b":0,"k":0,"id":"w82"}]}</script>
+<script>
+{
+const A=JSON.parse(document.getElementById("atlas").textContent);
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num=v=>{const x=parseFloat(v);return isFinite(x)&&x>0?x:0};
+const DAY=864e5,today=new Date(new Date().toDateString()).getTime();
+const CLS={saber:"Saber",archer:"Archer",lancer:"Lancer",rider:"Rider",caster:"Caster",assassin:"Assassin",berserker:"Berserker",ruler:"Ruler",avenger:"Avenger",alterEgo:"Alter Ego",moonCancer:"Moon Cancer",foreigner:"Foreigner",pretender:"Pretender",shielder:"Shielder",beast:"Beast",unBeastOlgaMarie:"Beast"};
+const KEY="fgo-sq-calc-v5",OLD="fgo-sq-calc-v4";
+const fresh=()=>A.steps.map(o=>({...o}));
+const DEF=()=>({sq:120,frag:0,tk:4,story:30,weekly:9,monthly:5,useTk:true,useEv:true,drift:15,plan:[],q:fresh()});
+let st,hist=[];
+try{st=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!st||!Array.isArray(st.q)){st=DEF();try{const o=JSON.parse(localStorage.getItem(OLD));if(o){for(const k of["sq","frag","tk","story","weekly","monthly","drift","useTk","useEv"])if(k in o)st[k]=o[k];if(Array.isArray(o.plan))st.plan=o.plan.filter(p=>st.q.some(x=>x.id===p.id))}}catch(e){}}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+const snap=()=>{hist.push(JSON.stringify(st));if(hist.length>40)hist.shift()};
+
+const rolls=(sq,tk)=>{const u=Math.floor(sq/3)+Math.floor(tk);return Math.floor(u/10)*11+u%10};
+const prob=n=>n>=330?1:1-Math.pow(0.992,n);
+const offset=()=>{const f=st.q[0];return f&&f.jp?Math.max(0,Math.round((Date.parse(f.jp)+A.lagDays*DAY-today)/DAY)):0};
+// Walk the queue in order: add income for the days each step takes to arrive, spend on planned banners.
+function simulate(){
+  const per=st.weekly/7,dr=st.drift/100,mt=st.useTk?st.monthly/30:0,planMap=new Map(st.plan.map(p=>[p.id,p.pulls]));
+  let lo=st.sq+st.frag/7+st.story,hi=lo,tk=st.tk,days=0,pend=offset();const out=[];
+  st.q.forEach((p,i)=>{
+    const d=pend;pend=num(p.d);days+=d;
+    const ev=st.useEv?num(p.a):0;
+    lo+=ev+d*(1-dr)*per;hi+=ev+d*(1+dr)*per;tk+=(st.useEv?num(p.k):0)+d*mt;
+    const o={i,id:p.id,days,date:today+days*DAY,lo,hi,tk,availLo:rolls(lo,tk),availHi:rolls(hi,tk)};
+    if(planMap.has(p.id)){
+      const want=planMap.get(p.id),used=Math.min(want,o.availLo);
+      const units=Math.floor(used/11)*10+used%11,ut=Math.min(Math.floor(tk),units),sqUsed=(units-ut)*3;
+      tk-=ut;lo=Math.max(0,lo-sqUsed);hi=Math.max(0,hi-sqUsed);
+      Object.assign(o,{want,used,short:Math.max(0,want-o.availLo),afterLo:lo,afterHi:hi});
+    }
+    out.push(o);
+  });
+  return out;
+}
+
+const fmt=x=>Math.round(x).toLocaleString("en-US");
+const range=(a,b)=>fmt(a)===fmt(b)?fmt(a):`${fmt(a)}–${fmt(b)}`;
+const pct=x=>(x>=1?"100":(x*100).toFixed(x<.1?1:0))+"%";
+const fdate=t=>new Date(t).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+const mname=t=>new Date(t).toLocaleDateString("en-US",{month:"long",year:"numeric"});
+const svOf=p=>Array.isArray(p.sv)?p.sv:[];
+const title=p=>p.t==="banner"?(p.s||p.n):p.n;
+const bannerImg=p=>p.img?`assets/w/${encodeURIComponent(p.img)}`:"";
+const faceImg=s=>s.i?`assets/w/${encodeURIComponent(s.i)}`:"";
+const img=(src,alt,w,h)=>src?`<img src="${src}" alt="${esc(alt)}" width="${w}" height="${h}" loading="lazy" decoding="async" onerror="this.style.visibility='hidden'">`:"";
+const daysLabel=d=>d<=0?"Available now":d<45?`In ${Math.round(d)} day${Math.round(d)===1?"":"s"}`:`In ~${Math.round(d/30)} months`;
+const face=s=>`<div class="face" title="${esc(s.name)}"><div class="pic">${img(faceImg(s),"",138,150)}</div><span>${esc(s.name)}</span><small>${s.r}★ ${esc(CLS[s.cls]||s.cls||"")}</small></div>`;
+const faceRow=svs=>{const k=svs.length>5?4:svs.length,rest=svs.slice(k);
+  return `<div class="faces">${svs.slice(0,k).map(face).join("")}${rest.length?`<details class="more"><summary aria-label="Show ${rest.length} more servants">+${rest.length}</summary><div class="pop">${rest.map(face).join("")}</div></details>`:""}</div>`};
+const nm=s=>`<b>${esc(s.name)}</b>`;
+const bigList=svs=>`<div class="nameline"><p>${svs.length} servants: ${svs.slice(0,3).map(nm).join(", ")}…</p><details class="more wide"><summary>Show all</summary><div class="pop list">${svs.map(s=>esc(s.name)).join("<br>")}</div></details></div>`;
+const fives=p=>svOf(p).filter(s=>s.r===5).length;
+
+function renderCalc(sim){
+  const per=st.weekly/7,mt=st.useTk?st.monthly:0;
+  const evSQ=st.useEv?st.q.reduce((a,p)=>a+num(p.a),0):0,span=Math.max(30,st.q.reduce((a,p)=>a+num(p.d),0));
+  const mSQ=per*30+evSQ/span*30,mTk=mt+(st.useEv?st.q.reduce((a,p)=>a+num(p.k),0)/span*30:0);
+  const now=rolls(st.sq+st.frag/7+st.story,st.tk);
+  $("nowRolls").innerHTML=`${fmt(now)}<small>rolls</small>`;
+  $("mobRolls").textContent=fmt(now);
+  $("mInc").textContent=`${fmt(mSQ)} SQ + ${fmt(mTk)} tickets (~${fmt(mSQ/3+mTk)} rolls)`;
+  $("nowJp").textContent="JP "+fdate(Date.parse(A.jpDate));
+  const nb=sim.find(o=>st.q[o.i].t==="banner");
+  $("nextBan").textContent=nb?`${title(st.q[nb.i])}, ${fdate(nb.date)}`:"None";
+  const planned=sim.filter(o=>o.want!==undefined);
+  $("clearPlan").hidden=!planned.length;
+  if(!planned.length){
+    $("planSum").innerHTML="";
+    $("plan").innerHTML=`<div class="empty"><h3>No banners in your plan yet</h3><p>Add banners from the timeline and set how many rolls you want on each. Quartz is spent in order, so you will see if one banner leaves you short for the next.</p><a class="btn pri" href="#timeline" style="display:inline-flex;align-items:center;text-decoration:none">Open the timeline</a></div>`;
+    return;
+  }
+  const last=planned[planned.length-1],shortN=planned.filter(o=>o.short).length;
+  $("planSum").innerHTML=`<div class="sum">
+    <div><span>Banners</span><strong>${planned.length}</strong></div>
+    <div><span>Rolls planned</span><strong>${fmt(planned.reduce((a,o)=>a+o.want,0))}</strong></div>
+    <div><span>Fully covered</span><strong class="${shortN?"bad":"ok"}">${planned.length-shortN} of ${planned.length}</strong></div>
+    <div><span>SQ left at the end</span><strong>${range(last.afterLo,last.afterHi)}</strong></div></div>`;
+  $("plan").innerHTML=planned.map(o=>{const p=st.q[o.i],id=esc(p.id),fill=Math.min(1,o.availLo/Math.max(1,o.want)),n5=fives(p);
+    return `<article class="pb${o.short?" short":""}">
+      <div class="art">${img(bannerImg(p),"",800,300)}</div>
+      <div><div class="pbh"><div><h3>${esc(title(p))}</h3>
+        <div class="meta">Global ~${fdate(o.date)} · ${esc(p.ev||p.n)}${n5?` · ${n5} 5★ on rate-up`:""}</div></div>
+        <button class="btn sm danger x" data-rm="${id}" aria-label="Remove ${esc(title(p))} from plan">Remove</button></div>
+        <div class="pctl"><label class="sr" for="pl-${id}">Rolls</label>
+          <input class="num" type="number" min="1" inputmode="numeric" id="pl-${id}" data-pulls="${id}" value="${o.want}">
+          <button class="btn sm" data-set="${id}" data-v="11">11</button><button class="btn sm" data-set="${id}" data-v="110">110</button>
+          <button class="btn sm" data-set="${id}" data-v="330">330 pity</button><button class="btn sm" data-set="${id}" data-v="max">All I have</button></div>
+        <div class="bar"><i style="width:${(fill*100).toFixed(1)}%"></i></div>
+        <div class="nums"><span>Available <b>${range(o.availLo,o.availHi)}</b></span><span>Using <b>${fmt(o.used)}</b></span>
+          <span>Chance <b>${pct(prob(o.used))}</b></span>
+          <span>${o.short?`<span class="bad">Short ${fmt(o.short)} rolls (${fmt(o.short*30/11)} SQ)</span>`:o.used>=330?'<span class="ok">Pity guaranteed</span>':'<span class="ok">Covered</span>'}</span>
+          <span>SQ after <b>${range(o.afterLo,o.afterHi)}</b></span></div>
+      </div></article>`}).join("")+`<p class="hint" style="margin-top:14px">Chance is for at least one copy at 0.8% per roll; 330 rolls on the same banner guarantee the servant. Tickets are spent before quartz, using the low end of the range.</p>`;
+}
+
+let flt="all",tlKey="";
+function renderTimeline(sim){
+  const q=$("q").value.trim().toLowerCase(),inPlan=new Set(st.plan.map(p=>p.id));
+  const rows=sim.filter(o=>{const p=st.q[o.i];
+    if(flt==="banner"&&p.t!=="banner")return false;if(flt==="event"&&p.t==="banner")return false;if(flt==="plan"&&!inPlan.has(p.id))return false;
+    return !q||(title(p)+" "+p.n+" "+svOf(p).map(s=>s.name).join(" ")).toLowerCase().includes(q)});
+  $("count").textContent=`${rows.length} of ${st.q.length}`;
+  let cur="",html="";
+  for(const o of rows){const p=st.q[o.i],m=mname(o.date);
+    if(m!==cur){cur=m;html+=`<h2 class="month">${esc(m)}</h2>`}
+    const when=`<span class="a">${daysLabel(o.days)}</span><span>${range(o.availLo,o.availHi)} rolls by then</span>`;
+    if(p.t==="banner"){const svs=svOf(p),on=inPlan.has(p.id);
+      html+=`<article class="ev"><div class="art">${img(bannerImg(p),"Summoning campaign banner: "+title(p),800,300)}</div><div>
+        <h3>${esc(title(p))}</h3>
+        <div class="d">${esc(p.n)} · Global ~${fdate(o.date)} · JP ${esc(p.jp)}${p.end?" to "+esc(p.end):""}</div>
+        <div class="chips">${when}</div>
+        ${p.big?bigList(svs):faceRow(svs)}
+        <button class="btn add${on?" in":""}" data-stage="${esc(p.id)}" aria-pressed="${on}">${on?"In your plan · Remove":"Add to plan"}</button></div></article>`;
+    }else{
+      html+=`<article class="evrow"><div><h3>${esc(p.n)}</h3><div class="d hint">Event · Global ~${fdate(o.date)} · JP ${esc(p.jp)}</div></div>
+        <div class="chips">${num(p.a)?`<span class="a">+${fmt(num(p.a))} SQ</span>`:""}${num(p.k)?`<span class="a">+${fmt(num(p.k))} tickets</span>`:""}${when}</div></article>`;
+    }}
+  html=html||'<div class="empty"><h3>Nothing matches</h3><p>Try another search or filter.</p></div>';
+  if(html!==tlKey){$("tl").innerHTML=html;tlKey=html}
+}
+function renderTable(){
+  $("qt").innerHTML=st.q.map((p,i)=>`<tr><td>${i+1}</td><td style="white-space:nowrap">${esc(p.jp||"")}</td><td class="nm">${p.t==="banner"?"Banner: ":""}${esc(title(p))}</td>
+    ${["d","a","k"].map(k=>`<td><input type="number" min="0" data-i="${i}" data-f="${k}" value="${num(p[k])}" aria-label="${{d:"Days",a:"SQ",k:"Tickets"}[k]} for step ${i+1}"></td>`).join("")}
+    <td style="white-space:nowrap"><button class="btn sm" data-up="${i}" aria-label="Move up">↑</button> <button class="btn sm" data-dn="${i}" aria-label="Move down">↓</button> <button class="btn sm" data-del="${i}" aria-label="Delete step">✕</button></td></tr>`).join("");
+  if(document.activeElement!==$("json"))$("json").value=JSON.stringify(st.q);
+}
+
+const view=()=>location.hash==="#timeline"?"timeline":"calculator";
+let tableDirty=true;
+function render(){
+  for(const k of["sq","frag","tk","story","weekly","monthly"])if(document.activeElement!==$(k))$(k).value=st[k];
+  $("useTk").checked=st.useTk;$("useEv").checked=st.useEv;
+  const sim=simulate();
+  renderCalc(sim);
+  if(view()==="timeline")renderTimeline(sim);else tlKey="";
+  if($("v-timeline").querySelector("details.qe").open){renderTable();tableDirty=false}else tableDirty=true;
+  save();
+}
+$("foot").textContent=`Event and banner order from the Fate/Grand Order Wiki (Fandom), event SQ from Atlas Academy, data from ${A.generated}. Global is treated as JP ${A.jpDate} (about ${A.lagDays} days behind). Campaign login bonuses, main story without an event, and master missions are not included. Banner art belongs to TYPE-MOON / FGO PROJECT. Fan-made, not affiliated with TYPE-MOON, Lasengle or Aniplex.`;
+
+function route(){const v=view();
+  for(const n of["calculator","timeline"]){$("v-"+n).classList.toggle("on",n===v);const t=$("tab-"+n);t.classList.toggle("on",n===v);n===v?t.setAttribute("aria-current","page"):t.removeAttribute("aria-current")}
+  $("mobbar").style.visibility=v==="calculator"?"visible":"hidden";
+  render();}
+addEventListener("hashchange",()=>{route();scrollTo(0,0)});
+
+for(const k of["sq","frag","tk","story","weekly","monthly"])$(k).addEventListener("input",e=>{st[k]=num(e.target.value);render()});
+$("useTk").addEventListener("change",e=>{st.useTk=e.target.checked;render()});
+$("useEv").addEventListener("change",e=>{st.useEv=e.target.checked;render()});
+let qt;$("q").addEventListener("input",()=>{clearTimeout(qt);qt=setTimeout(render,120)});
+$("v-timeline").querySelector("details.qe").addEventListener("toggle",e=>{if(e.target.open&&tableDirty){renderTable();tableDirty=false}});
+const togglePlan=id=>{snap();const i=st.plan.findIndex(p=>p.id===id);if(i>=0)st.plan.splice(i,1);else st.plan.push({id,pulls:110});render()};
+document.addEventListener("click",e=>{for(const m of document.querySelectorAll("details.more[open]"))if(!m.contains(e.target))m.open=false;const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.f){flt=b.dataset.f;for(const x of $("seg").children)x.classList.toggle("on",x===b);return render()}
+  if(b.dataset.stage)return togglePlan(b.dataset.stage);
+  if(b.dataset.rm)return togglePlan(b.dataset.rm);
+  if(b.dataset.set){const p=st.plan.find(x=>x.id===b.dataset.set);if(!p)return;
+    if(b.dataset.v==="max"){p.pulls=99999;const o=simulate().find(x=>x.id===p.id);p.pulls=Math.max(1,o?o.availLo:1)}else p.pulls=+b.dataset.v;render();return}
+  const mv=(i,j)=>{if(j<0||j>=st.q.length)return;snap();[st.q[i],st.q[j]]=[st.q[j],st.q[i]];render()};
+  if(b.dataset.up)return mv(+b.dataset.up,+b.dataset.up-1);
+  if(b.dataset.dn)return mv(+b.dataset.dn,+b.dataset.dn+1);
+  if(b.dataset.del){snap();const [r]=st.q.splice(+b.dataset.del,1);st.plan=st.plan.filter(p=>p.id!==r.id);render()}
+});
+document.addEventListener("change",e=>{const el=e.target;
+  if(el.dataset.pulls){const p=st.plan.find(x=>x.id===el.dataset.pulls);if(p){p.pulls=Math.max(1,Math.round(num(el.value)));render()}}
+  if(el.dataset.f&&el.tagName==="INPUT"){snap();st.q[+el.dataset.i][el.dataset.f]=num(el.value);if(el.dataset.f==="a")st.q[+el.dataset.i].b=num(el.value);render()}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")for(const m of document.querySelectorAll("details.more[open]"))m.open=false});
+$("addNext").addEventListener("click",()=>{const inPlan=new Set(st.plan.map(p=>p.id));const p=st.q.find(x=>x.t==="banner"&&!inPlan.has(x.id));if(p)togglePlan(p.id)});
+$("clearPlan").addEventListener("click",()=>{if(!st.plan.length)return;snap();st.plan=[];render()});
+$("undo").addEventListener("click",()=>{if(hist.length){st=JSON.parse(hist.pop());render()}});
+$("reset").addEventListener("click",()=>{snap();st.q=fresh();st.plan=st.plan.filter(p=>st.q.some(x=>x.id===p.id));render()});
+$("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText($("json").value);$("jmsg").textContent="Copied."}catch(e){$("json").select();$("jmsg").textContent="Select it and copy manually."}});
+$("load").addEventListener("click",()=>{try{const q=JSON.parse($("json").value);if(!Array.isArray(q))throw 0;snap();
+  st.q=q.map((o,i)=>({id:String(o.id||"x"+i),jp:/^\d{4}-\d\d-\d\d$/.test(o.jp)?o.jp:"",end:/^\d{4}-\d\d-\d\d$/.test(o.end)?o.end:"",n:String(o.n||"Step"),ev:String(o.ev||""),t:o.t==="banner"?"banner":"event",s:String(o.s||""),img:/^[\w.-]+$/.test(o.img||"")?o.img:"",big:!!o.big,sv:Array.isArray(o.sv)?o.sv.map(s=>({name:String(s.name||""),r:s.r===4?4:5,cls:String(s.cls||""),lim:s.lim?1:0,i:/^[\w.-]+$/.test(s.i||"")?s.i:""})):[],d:num(o.d),a:num(o.a),b:num(o.a),k:num(o.k)}));
+  st.plan=st.plan.filter(p=>st.q.some(x=>x.id===p.id));$("jmsg").textContent="Queue loaded.";render()}catch(e){$("jmsg").textContent="That JSON is not valid."}});
+window.__fgo={simulate,rolls,prob,get st(){return st}};
+route();
+}
+</script>
+</body>
+</html>
