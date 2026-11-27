@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { readWiki, iconFiles, fileUrls, readAtlas, atlasSteps, buildQueue, neededFiles } from "./updater-core.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const UA = "fgocalculator-updater/1.0 (+https://github.com/PieroSVM/fgocalculator)";
+const UA = "fgo-quartz-calculator-updater/1.0";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function get(url, as = "json") {
