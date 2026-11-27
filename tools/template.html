@@ -154,9 +154,6 @@ main{padding-block:28px 64px}
 .evrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 20px;padding:14px 0;border-bottom:1px solid var(--line);content-visibility:auto;contain-intrinsic-size:auto 64px}
 .evrow h3{font-size:16px;font-weight:600}
 .evrow .chips{margin-top:0}
-details.qe{margin-top:36px;background:var(--sf);border-radius:14px;padding:4px 20px}
-.qe summary{font-weight:600;min-height:52px;display:flex;align-items:center}
-details.qe[open]{padding-bottom:20px}
 summary{cursor:pointer}
 .scroll{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-size:14px}
@@ -236,12 +233,6 @@ footer p{max-width:80ch}
     <div class="count" id="count"></div>
   </div>
   <div id="tl"></div>
-  <details class="qe"><summary>Edit the queue, import or export</summary>
-    <p class="hint">Fix any step if Global strays from the JP order. Days is the wait before that step; every change recalculates.</p>
-    <div class="scroll" style="margin-top:10px"><table><thead><tr><th>#</th><th>JP date</th><th>Step</th><th>Days</th><th>Saint Quartz</th><th>Tickets</th><th></th></tr></thead><tbody id="qt"></tbody></table></div>
-    <div class="row"><button class="btn sm" id="undo">Undo</button><button class="btn sm" id="reset">Restore source data</button><button class="btn sm" id="copy">Copy JSON</button><button class="btn sm" id="load">Load JSON</button><span class="hint" id="jmsg" role="status"></span></div>
-    <textarea id="json" aria-label="Queue as JSON" spellcheck="false"></textarea>
-  </details>
 </section>
 </main>
 <div class="mobbar" id="mobbar"><span>Rolls now</span><b id="mobRolls"></b></div>
@@ -269,6 +260,8 @@ if(st.t&&Date.now()-st.t>IDLE){Object.assign(st,{sq:0,frag:0,tk:0,story:0,plan:[
 if(st.v!==A.version){const old=Array.isArray(st.q)?st.q:[];st.q=fresh();
   st.plan=(st.plan||[]).map(p=>{if(st.q.some(x=>x.id===p.id))return p;const o=old.find(x=>x.id===p.id),n=o&&o.img&&st.q.find(x=>x.img===o.img);return n?{...p,id:n.id}:null}).filter(Boolean);
   st.v=A.version}
+// The queue is not editable on the page, so always use the source data.
+st.q=fresh();st.plan=(st.plan||[]).filter(p=>st.q.some(x=>x.id===p.id));
 const save=()=>{st.t=Date.now();try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
 addEventListener("pagehide",save);
 const snap=()=>{hist.push(JSON.stringify(st));if(hist.length>40)hist.shift()};
@@ -388,22 +381,14 @@ function renderTimeline(sim){
   html=html||'<div class="empty"><h3>Nothing matches</h3><p>Try another search or filter.</p></div>';
   if(html!==tlKey){$("tl").innerHTML=html;tlKey=html}
 }
-function renderTable(){
-  $("qt").innerHTML=st.q.map((p,i)=>`<tr><td>${i+1}</td><td style="white-space:nowrap">${esc(p.jp||"")}</td><td class="nm">${p.t==="banner"?"Banner: ":""}${esc(title(p))}</td>
-    ${["d","a","k"].map(k=>`<td><input type="number" min="0" data-i="${i}" data-f="${k}" value="${num(p[k])}" aria-label="${{d:"Days",a:"Saint Quartz",k:"Tickets"}[k]} for step ${i+1}"></td>`).join("")}
-    <td style="white-space:nowrap"><button class="btn sm" data-up="${i}" aria-label="Move up">↑</button> <button class="btn sm" data-dn="${i}" aria-label="Move down">↓</button> <button class="btn sm" data-del="${i}" aria-label="Delete step">✕</button></td></tr>`).join("");
-  if(document.activeElement!==$("json"))$("json").value=JSON.stringify(st.q);
-}
 
 const view=()=>location.hash==="#timeline"?"timeline":"calculator";
-let tableDirty=true;
 function render(){
   for(const k of["sq","frag","tk","story","weekly","monthly"])if(document.activeElement!==$(k))$(k).value=st[k];
   $("useTk").checked=st.useTk;$("useEv").checked=st.useEv;
   const sim=simulate();
   renderCalc(sim);
   if(view()==="timeline")renderTimeline(sim);else tlKey="";
-  if($("v-timeline").querySelector("details.qe").open){renderTable();tableDirty=false}else tableDirty=true;
   save();
 }
 $("yr").textContent=new Date().getFullYear();
@@ -418,7 +403,6 @@ for(const k of["sq","frag","tk","story","weekly","monthly"])$(k).addEventListene
 $("useTk").addEventListener("change",e=>{st.useTk=e.target.checked;render()});
 $("useEv").addEventListener("change",e=>{st.useEv=e.target.checked;render()});
 let qt;$("q").addEventListener("input",()=>{clearTimeout(qt);qt=setTimeout(render,120)});
-$("v-timeline").querySelector("details.qe").addEventListener("toggle",e=>{if(e.target.open&&tableDirty){renderTable();tableDirty=false}});
 const togglePlan=id=>{snap();const i=st.plan.findIndex(p=>p.id===id);if(i>=0)st.plan.splice(i,1);else st.plan.push({id,pulls:110});render()};
 document.addEventListener("click",e=>{for(const m of document.querySelectorAll("details.more[open]"))if(!m.contains(e.target))m.open=false;const b=e.target.closest("button");if(!b)return;
   if(b.dataset.f){flt=b.dataset.f;for(const x of $("seg").children)x.classList.toggle("on",x===b);return render()}
@@ -426,23 +410,13 @@ document.addEventListener("click",e=>{for(const m of document.querySelectorAll("
   if(b.dataset.rm)return togglePlan(b.dataset.rm);
   if(b.dataset.set){const p=st.plan.find(x=>x.id===b.dataset.set);if(!p)return;
     if(b.dataset.v==="max"){p.pulls=99999;const o=simulate().find(x=>x.id===p.id);p.pulls=Math.max(1,o?o.availLo:1)}else p.pulls=+b.dataset.v;render();return}
-  const mv=(i,j)=>{if(j<0||j>=st.q.length)return;snap();[st.q[i],st.q[j]]=[st.q[j],st.q[i]];render()};
-  if(b.dataset.up)return mv(+b.dataset.up,+b.dataset.up-1);
-  if(b.dataset.dn)return mv(+b.dataset.dn,+b.dataset.dn+1);
-  if(b.dataset.del){snap();const [r]=st.q.splice(+b.dataset.del,1);st.plan=st.plan.filter(p=>p.id!==r.id);render()}
 });
 document.addEventListener("change",e=>{const el=e.target;
   if(el.dataset.pulls){const p=st.plan.find(x=>x.id===el.dataset.pulls);if(p){p.pulls=Math.max(1,Math.round(num(el.value)));render()}}
-  if(el.dataset.f&&el.tagName==="INPUT"){snap();st.q[+el.dataset.i][el.dataset.f]=num(el.value);if(el.dataset.f==="a")st.q[+el.dataset.i].b=num(el.value);render()}});
+});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")for(const m of document.querySelectorAll("details.more[open]"))m.open=false});
 $("addNext").addEventListener("click",()=>{const inPlan=new Set(st.plan.map(p=>p.id));const p=st.q.find(x=>x.t==="banner"&&!inPlan.has(x.id));if(p)togglePlan(p.id)});
 $("clearPlan").addEventListener("click",()=>{if(!st.plan.length)return;snap();st.plan=[];render()});
-$("undo").addEventListener("click",()=>{if(hist.length){st=JSON.parse(hist.pop());render()}});
-$("reset").addEventListener("click",()=>{snap();st.q=fresh();st.plan=st.plan.filter(p=>st.q.some(x=>x.id===p.id));render()});
-$("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText($("json").value);$("jmsg").textContent="Copied."}catch(e){$("json").select();$("jmsg").textContent="Select it and copy manually."}});
-$("load").addEventListener("click",()=>{try{const q=JSON.parse($("json").value);if(!Array.isArray(q))throw 0;snap();
-  st.q=q.map((o,i)=>({id:String(o.id||"x"+i),jp:/^\d{4}-\d\d-\d\d$/.test(o.jp)?o.jp:"",end:/^\d{4}-\d\d-\d\d$/.test(o.end)?o.end:"",n:String(o.n||"Step"),ev:String(o.ev||""),t:o.t==="banner"?"banner":"event",s:String(o.s||""),img:/^[\w.-]+$/.test(o.img||"")?o.img:"",big:!!o.big,sv:Array.isArray(o.sv)?o.sv.map(s=>({name:String(s.name||""),r:s.r===4?4:5,cls:String(s.cls||""),lim:s.lim?1:0,i:/^[\w.-]+$/.test(s.i||"")?s.i:""})):[],d:num(o.d),a:num(o.a),b:num(o.a),k:num(o.k)}));
-  st.plan=st.plan.filter(p=>st.q.some(x=>x.id===p.id));$("jmsg").textContent="Queue loaded.";render()}catch(e){$("jmsg").textContent="That JSON is not valid."}});
 window.__fgo={simulate,rolls,prob,get st(){return st}};
 route();
 }
