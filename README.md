@@ -23,10 +23,25 @@ Rolls = `floor(units / 10) * 11 + units % 10`, where `units = floor(SQ / 3) + ti
 | `index.html` | The built page (template plus embedded data). Open it directly or serve the folder. |
 | `assets/w/` | Campaign banners and servant icons, unmodified original files from the FGO Wiki. |
 | `data/queue.json` | The queue: events and summoning campaigns in JP order. |
-| `data/wiki-raw.json` | Parsed source data from the wiki's upcoming events list. |
+| `data/names.json` | English names for Atlas events that only have a Japanese name yet. |
 | `tools/template.html` | The page source. Data goes in at `__ATLAS__`. |
 | `tools/build.py` | Rebuilds `index.html` from the template and `data/queue.json`. |
-| `tools/atlas-build.mjs` | Helper that reads event SQ and ticket rewards from Atlas Academy data. |
+| `tools/updater-core.mjs` | Reads the wiki and Atlas Academy and builds the queue. |
+| `tools/update.mjs` | Runs the updater, downloads new images and writes `data/queue.json`. |
+| `.github/workflows/update-data.yml` | Daily job that runs the updater and publishes any change. |
+
+## Automatic updates
+
+Every day at 10:00 UTC a GitHub Action runs `node tools/update.mjs` and `python3 tools/build.py`:
+
+1. Reads [Event List (US)/Upcoming Events](https://fategrandorder.fandom.com/wiki/Event_List_(US)/Upcoming_Events) and every summoning campaign on those event pages.
+2. Reads event Saint Quartz and tickets from Atlas Academy and works out where Global is on the JP timeline.
+3. Downloads any banner or icon it doesn't have yet, byte for byte.
+4. Commits only if something changed, and GitHub Pages republishes the site.
+
+If the wiki returns too few banners, the job stops and keeps the last good data. You can also run it by hand from the **Actions** tab with **Run workflow**. Saved plans in visitors' browsers carry over to the new data.
+
+If the log warns about an event without an English name, add it to `data/names.json`.
 
 ## Run locally
 
@@ -35,7 +50,7 @@ python3 -m http.server 8000
 # open http://localhost:8000
 ```
 
-After editing the template or the data, run `python3 tools/build.py`.
+After editing the template or the data, run `python3 tools/build.py`. To refresh the data yourself, run `node tools/update.mjs` first (Node 20+).
 
 ## Sources
 

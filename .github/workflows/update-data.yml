@@ -1,0 +1,47 @@
+name: Update banners and events
+
+on:
+  schedule:
+    - cron: "0 10 * * *" # every day at 10:00 UTC (5:00 in Lima)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Read the wiki and Atlas Academy
+        run: node tools/update.mjs
+
+      - name: Rebuild the page
+        run: python3 tools/build.py
+
+      - name: Commit and publish if something changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Nothing new."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data assets index.html
+          git commit -m "Update banners and events ($(date -u +%Y-%m-%d))"
+          git push
+          # Ask GitHub Pages to rebuild in case the bot's push does not trigger it.
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" || echo "Pages build request skipped."

@@ -261,6 +261,10 @@ const DEF=()=>({sq:120,frag:0,tk:4,story:30,weekly:9,monthly:5,useTk:true,useEv:
 let st,hist=[];
 try{st=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!st||!Array.isArray(st.q)){st=DEF();try{const o=JSON.parse(localStorage.getItem(OLD));if(o){for(const k of["sq","frag","tk","story","weekly","monthly","drift","useTk","useEv"])if(k in o)st[k]=o[k];if(Array.isArray(o.plan))st.plan=o.plan.filter(p=>st.q.some(x=>x.id===p.id))}}catch(e){}}
+// New data from the daily update: take the fresh queue and keep planned banners (matched by id, or by banner art for older saves).
+if(st.v!==A.version){const old=Array.isArray(st.q)?st.q:[];st.q=fresh();
+  st.plan=(st.plan||[]).map(p=>{if(st.q.some(x=>x.id===p.id))return p;const o=old.find(x=>x.id===p.id),n=o&&o.img&&st.q.find(x=>x.img===o.img);return n?{...p,id:n.id}:null}).filter(Boolean);
+  st.v=A.version}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
 const snap=()=>{hist.push(JSON.stringify(st));if(hist.length>40)hist.shift()};
 
