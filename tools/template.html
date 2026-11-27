@@ -7,22 +7,21 @@
 <title>FGO Quartz Calculator</title>
 <link rel="icon" type="image/png" href="assets/w/saintquartz.png">
 <link rel="apple-touch-icon" href="assets/w/saintquartz.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1013" media="(prefers-color-scheme: dark)">
 <style>
 /* VOICE everyday tool for players, quiet and exact
    IDEA a summon schedule: banners in queue order, each one a ticket you can add to your plan
    PICTURE the official campaign banner art, shown as is, no frames
    COLOUR white ground, near-black ink, quartz blue as the one working colour, green and red only for enough / short
-   TYPE Inter throughout, weight does the hierarchy
+   TYPE system UI font throughout (no web font: nothing to download, no layout shift), weight does the hierarchy
    LAYOUT laptop: inputs left, result right, plan below; timeline as image + details rows. phone: stacked, result bar sticky */
 :root{color-scheme:light dark;--bg:light-dark(#ffffff,#0f1013);--sf:light-dark(#f4f4f5,#1a1b1f);--sf2:light-dark(#e9e9ec,#25262b);--ink:light-dark(#111216,#f1f1f3);--mut:light-dark(#5f6169,#a1a3ab);--line:light-dark(#e4e4e7,#2a2b31);--ac:light-dark(#2f54eb,#7b95ff);--acInk:light-dark(#ffffff,#0f1013);--acSf:light-dark(#eef1ff,#1c2240);--ok:light-dark(#127a46,#4fd28f);--bad:light-dark(#c4301c,#ff8a73)}
 :root[data-theme=light]{color-scheme:light}
 :root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:clip;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:clip;-webkit-font-smoothing:antialiased}
 h1,h2,h3{margin:0;line-height:1.15;letter-spacing:-.015em}
 p{margin:0}
 img{max-width:100%;display:block}
@@ -246,7 +245,7 @@ footer p{max-width:80ch}
 </section>
 </main>
 <div class="mobbar" id="mobbar"><span>Rolls now</span><b id="mobRolls"></b></div>
-<footer><div class="wrap"><p id="foot"></p></div></footer>
+<footer><div class="wrap"><p id="foot">© <span id="yr">2026</span> FGO Quartz Calculator. All rights reserved. By ElLadoHelado.</p></div></footer>
 
 <script type="application/json" id="atlas">__ATLAS__</script>
 <script>
@@ -264,10 +263,14 @@ let st,hist=[];
 try{st=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!st||!Array.isArray(st.q)){st=DEF();try{const o=JSON.parse(localStorage.getItem(OLD));if(o){for(const k of["sq","frag","tk","story","weekly","monthly","drift","useTk","useEv"])if(k in o)st[k]=o[k];if(Array.isArray(o.plan))st.plan=o.plan.filter(p=>st.q.some(x=>x.id===p.id))}}catch(e){}}
 // New data from the daily update: take the fresh queue and keep planned banners (matched by id, or by banner art for older saves).
+// Coming back after more than 5 minutes starts a clean plan with the source queue; saved resources stay.
+const IDLE=5*60*1000;
+if(st.t&&Date.now()-st.t>IDLE){st.plan=[];st.q=fresh();st.v=A.version}
 if(st.v!==A.version){const old=Array.isArray(st.q)?st.q:[];st.q=fresh();
   st.plan=(st.plan||[]).map(p=>{if(st.q.some(x=>x.id===p.id))return p;const o=old.find(x=>x.id===p.id),n=o&&o.img&&st.q.find(x=>x.img===o.img);return n?{...p,id:n.id}:null}).filter(Boolean);
   st.v=A.version}
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+const save=()=>{st.t=Date.now();try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+addEventListener("pagehide",save);
 const snap=()=>{hist.push(JSON.stringify(st));if(hist.length>40)hist.shift()};
 
 const rolls=(sq,tk)=>{const u=Math.floor(sq/3)+Math.floor(tk);return Math.floor(u/10)*11+u%10};
@@ -403,7 +406,7 @@ function render(){
   if($("v-timeline").querySelector("details.qe").open){renderTable();tableDirty=false}else tableDirty=true;
   save();
 }
-$("foot").textContent=`© ${new Date().getFullYear()} FGO Quartz Calculator. All rights reserved. By ElLadoHelado.`;
+$("yr").textContent=new Date().getFullYear();
 
 function route(){const v=view();
   for(const n of["calculator","timeline"]){$("v-"+n).classList.toggle("on",n===v);const t=$("tab-"+n);t.classList.toggle("on",n===v);n===v?t.setAttribute("aria-current","page"):t.removeAttribute("aria-current")}
