@@ -105,7 +105,8 @@ main{padding-block:28px 64px}
 .brk{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}
 .brk>div{background:var(--sf);border-radius:10px;padding:10px 12px}
 .brk span{display:block;font-size:13px;color:var(--mut)}
-.brk strong{display:block;font-size:17px;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brk strong{display:block;font-size:17px;font-weight:650;font-variant-numeric:tabular-nums;line-height:1.3}
+.brk em{font-style:normal;font-size:13.5px;font-weight:600;white-space:nowrap}
 .brk small{display:block;font-size:13.5px;color:var(--mut);font-variant-numeric:tabular-nums}
 .verdict{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;font-size:14.5px;margin-top:4px}
 .verdict span{color:var(--mut)}
@@ -174,7 +175,7 @@ footer p{max-width:80ch}
 <body>
 
 <header class="top"><div class="wrap">
-  <div class="logo"><span>FGO Quartz Calculator</span><b class="short">FGO SQ</b></div>
+  <div class="logo"><span>FGO Quartz Calculator</span><b class="short">FGO Quartz</b></div>
   <nav class="tabs" aria-label="Sections">
     <a href="#calculator" id="tab-calculator">Calculator</a>
     <a href="#timeline" id="tab-timeline">Timeline</a>
@@ -189,17 +190,17 @@ footer p{max-width:80ch}
       <h2>Current resources</h2>
       <div class="grid2">
         <label class="fld">Saint Quartz<span class="in"><input type="number" id="sq" min="0" inputmode="numeric"></span></label>
-        <label class="fld"><span>Quartz Fragments <i>7 = 1 SQ</i></span><span class="in"><input type="number" id="frag" min="0" inputmode="numeric"></span></label>
+        <label class="fld"><span>Quartz Fragments <i>7 = 1 Saint Quartz</i></span><span class="in"><input type="number" id="frag" min="0" inputmode="numeric"></span></label>
         <label class="fld">Summon Tickets<span class="in"><input type="number" id="tk" min="0" inputmode="numeric"></span></label>
-        <label class="fld">Unclaimed story SQ<span class="in"><input type="number" id="story" min="0" inputmode="numeric"></span></label>
+        <label class="fld">Unclaimed story Saint Quartz<span class="in"><input type="number" id="story" min="0" inputmode="numeric"></span></label>
       </div>
       <div class="sep"></div>
       <h2>Income</h2>
       <div class="grid2">
-        <label class="fld"><span>SQ per week <i>login and missions</i></span><span class="in"><input type="number" id="weekly" min="0" step="0.5" inputmode="decimal"></span></label>
+        <label class="fld"><span>Saint Quartz per week <i>login and missions</i></span><span class="in"><input type="number" id="weekly" min="0" step="0.5" inputmode="decimal"></span></label>
         <div class="tgs">
           <div class="tg"><label for="useTk">Shop tickets</label><span class="tgr"><input type="number" id="monthly" min="0" max="10" inputmode="numeric" aria-label="Shop tickets per month" class="mini"><span class="hint">/ mo</span><input type="checkbox" class="sw" id="useTk"></span></div>
-          <div class="tg"><label for="useEv">SQ from events <i>JP data</i></label><input type="checkbox" class="sw" id="useEv"></div>
+          <div class="tg"><label for="useEv">Saint Quartz from events <i>JP data</i></label><input type="checkbox" class="sw" id="useEv"></div>
         </div>
       </div>
     </div>
@@ -233,7 +234,7 @@ footer p{max-width:80ch}
   <div id="tl"></div>
   <details class="qe"><summary>Edit the queue, import or export</summary>
     <p class="hint">Fix any step if Global strays from the JP order. Days is the wait before that step; every change recalculates.</p>
-    <div class="scroll" style="margin-top:10px"><table><thead><tr><th>#</th><th>JP date</th><th>Step</th><th>Days</th><th>SQ</th><th>Tickets</th><th></th></tr></thead><tbody id="qt"></tbody></table></div>
+    <div class="scroll" style="margin-top:10px"><table><thead><tr><th>#</th><th>JP date</th><th>Step</th><th>Days</th><th>Saint Quartz</th><th>Tickets</th><th></th></tr></thead><tbody id="qt"></tbody></table></div>
     <div class="row"><button class="btn sm" id="undo">Undo</button><button class="btn sm" id="reset">Restore source data</button><button class="btn sm" id="copy">Copy JSON</button><button class="btn sm" id="load">Load JSON</button><span class="hint" id="jmsg" role="status"></span></div>
     <textarea id="json" aria-label="Queue as JSON" spellcheck="false"></textarea>
   </details>
@@ -312,7 +313,7 @@ function renderCalc(sim){
   const now=rolls(st.sq+st.frag/7+st.story,st.tk);
   $("nowRolls").innerHTML=`${fmt(now)}<small>rolls</small>`;
   $("mobRolls").textContent=fmt(now);
-  $("mInc").textContent=`${fmt(mSQ)} SQ + ${fmt(mTk)} tickets (~${fmt(mSQ/3+mTk)} rolls)`;
+  $("mInc").textContent=`${fmt(mSQ)} Saint Quartz + ${fmt(mTk)} tickets (~${fmt(mSQ/3+mTk)} rolls)`;
   $("nowJp").textContent="JP "+fdate(Date.parse(A.jpDate));
   const nb=sim.find(o=>st.q[o.i].t==="banner");
   $("nextBan").textContent=nb?`${title(st.q[nb.i])}, ${fdate(nb.date)}`:"None";
@@ -328,7 +329,7 @@ function renderCalc(sim){
     <div><span>Banners</span><strong>${planned.length}</strong></div>
     <div><span>Rolls planned</span><strong>${fmt(planned.reduce((a,o)=>a+o.want,0))}</strong></div>
     <div><span>Fully covered</span><strong class="${shortN?"bad":"ok"}">${planned.length-shortN} of ${planned.length}</strong></div>
-    <div><span>SQ left at the end</span><strong>${range(last.afterLo,last.afterHi)}</strong></div></div>`;
+    <div><span>Saint Quartz left</span><strong>${range(last.afterLo,last.afterHi)}</strong></div></div>`;
   $("plan").innerHTML=planned.map(o=>{const p=st.q[o.i],id=esc(p.id),fill=Math.min(1,o.availLo/Math.max(1,o.want)),n5=fives(p);
     return `<article class="pb${o.short?" short":""}">
       <div class="art">${img(bannerImg(p),"",800,300)}</div>
@@ -340,12 +341,12 @@ function renderCalc(sim){
           <button class="btn sm" data-set="${id}" data-v="11">11</button><button class="btn sm" data-set="${id}" data-v="110">110</button>
           <button class="btn sm" data-set="${id}" data-v="330">330 pity</button><button class="btn sm" data-set="${id}" data-v="max">All I have</button></div>
         <div class="brk">
-          <div><span>You'll have by ${fdate(o.date).replace(/, \d{4}$/,"")}</span><strong>${sqR(o.sqLo,o.sqHi)} SQ</strong><small>${tks(o.tkB)} · ${range(o.availLo,o.availHi)} rolls</small></div>
-          <div><span>${fmt(o.used)} rolls cost</span><strong>${fl(o.sqUsed)} SQ</strong><small>${tks(o.ut)}</small></div>
-          <div><span>Left after</span><strong>${sqR(o.afterLo,o.afterHi)} SQ</strong><small>${tks(o.tkAfter)}</small></div>
+          <div><span>You'll have by ${fdate(o.date).replace(/, \d{4}$/,"")}</span><strong>${sqR(o.sqLo,o.sqHi)} <em>Saint Quartz</em></strong><small>${tks(o.tkB)} · ${range(o.availLo,o.availHi)} rolls</small></div>
+          <div><span>${fmt(o.used)} rolls cost</span><strong>${fl(o.sqUsed)} <em>Saint Quartz</em></strong><small>${tks(o.ut)}</small></div>
+          <div><span>Left after</span><strong>${sqR(o.afterLo,o.afterHi)} <em>Saint Quartz</em></strong><small>${tks(o.tkAfter)}</small></div>
         </div>
         <div class="bar"><i style="width:${(fill*100).toFixed(1)}%"></i></div>
-        <div class="verdict">${o.short?`<span class="bad">Short ${fmt(o.short)} rolls. You need ${fmt(Math.ceil(o.short*30/11))} more SQ for ${fmt(o.want)}.</span>`:o.used>=330?'<span class="ok">Covered. 330 rolls guarantee the servant.</span>':`<span class="ok">Covered. You can do all ${fmt(o.want)} rolls.</span>`}
+        <div class="verdict">${o.short?`<span class="bad">Short ${fmt(o.short)} rolls. You need ${fmt(Math.ceil(o.short*30/11))} more Saint Quartz for ${fmt(o.want)}.</span>`:o.used>=330?'<span class="ok">Covered. 330 rolls guarantee the servant.</span>':`<span class="ok">Covered. You can do all ${fmt(o.want)} rolls.</span>`}
           <span>Chance of at least one copy <b>${pct(prob(o.used))}</b></span></div>
       </div></article>`}).join("")+`<p class="hint" style="margin-top:14px">Chance is for at least one copy at 0.8% per roll; 330 rolls on the same banner guarantee the servant. Tickets are spent before quartz, using the low end of the range.</p>`;
 }
@@ -370,14 +371,14 @@ function renderTimeline(sim){
         <button class="btn add${on?" in":""}" data-stage="${esc(p.id)}" aria-pressed="${on}">${on?"In your plan · Remove":"Add to plan"}</button></div></article>`;
     }else{
       html+=`<article class="evrow"><div><h3>${esc(p.n)}</h3><div class="d hint">Event · Global ~${fdate(o.date)} · JP ${esc(p.jp)}</div></div>
-        <div class="chips">${num(p.a)?`<span class="a">+${fmt(num(p.a))} SQ</span>`:""}${num(p.k)?`<span class="a">+${fmt(num(p.k))} tickets</span>`:""}${when}</div></article>`;
+        <div class="chips">${num(p.a)?`<span class="a">+${fmt(num(p.a))} Saint Quartz</span>`:""}${num(p.k)?`<span class="a">+${fmt(num(p.k))} tickets</span>`:""}${when}</div></article>`;
     }}
   html=html||'<div class="empty"><h3>Nothing matches</h3><p>Try another search or filter.</p></div>';
   if(html!==tlKey){$("tl").innerHTML=html;tlKey=html}
 }
 function renderTable(){
   $("qt").innerHTML=st.q.map((p,i)=>`<tr><td>${i+1}</td><td style="white-space:nowrap">${esc(p.jp||"")}</td><td class="nm">${p.t==="banner"?"Banner: ":""}${esc(title(p))}</td>
-    ${["d","a","k"].map(k=>`<td><input type="number" min="0" data-i="${i}" data-f="${k}" value="${num(p[k])}" aria-label="${{d:"Days",a:"SQ",k:"Tickets"}[k]} for step ${i+1}"></td>`).join("")}
+    ${["d","a","k"].map(k=>`<td><input type="number" min="0" data-i="${i}" data-f="${k}" value="${num(p[k])}" aria-label="${{d:"Days",a:"Saint Quartz",k:"Tickets"}[k]} for step ${i+1}"></td>`).join("")}
     <td style="white-space:nowrap"><button class="btn sm" data-up="${i}" aria-label="Move up">↑</button> <button class="btn sm" data-dn="${i}" aria-label="Move down">↓</button> <button class="btn sm" data-del="${i}" aria-label="Delete step">✕</button></td></tr>`).join("");
   if(document.activeElement!==$("json"))$("json").value=JSON.stringify(st.q);
 }
@@ -393,7 +394,7 @@ function render(){
   if($("v-timeline").querySelector("details.qe").open){renderTable();tableDirty=false}else tableDirty=true;
   save();
 }
-$("foot").textContent=`Event and banner order from the Fate/Grand Order Wiki (Fandom), event SQ from Atlas Academy, data from ${A.generated}. Global is treated as JP ${A.jpDate} (about ${A.lagDays} days behind). Campaign login bonuses, main story without an event, and master missions are not included. Banner art belongs to TYPE-MOON / FGO PROJECT. Fan-made, not affiliated with TYPE-MOON, Lasengle or Aniplex.`;
+$("foot").textContent=`© ${new Date().getFullYear()} FGO Quartz Calculator. All rights reserved. By ElLadoHelado.`;
 
 function route(){const v=view();
   for(const n of["calculator","timeline"]){$("v-"+n).classList.toggle("on",n===v);const t=$("tab-"+n);t.classList.toggle("on",n===v);n===v?t.setAttribute("aria-current","page"):t.removeAttribute("aria-current")}
