@@ -102,8 +102,14 @@ main{padding-block:28px 64px}
 .bar{height:6px;border-radius:3px;background:var(--sf2);overflow:hidden;margin:14px 0 8px}
 .bar i{display:block;height:100%;background:var(--ac);border-radius:3px}
 .pb.short .bar i{background:var(--bad)}
-.nums{display:flex;flex-wrap:wrap;gap:4px 20px;font-size:14px;color:var(--mut)}
-.nums b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.brk{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}
+.brk>div{background:var(--sf);border-radius:10px;padding:10px 12px}
+.brk span{display:block;font-size:13px;color:var(--mut)}
+.brk strong{display:block;font-size:17px;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brk small{display:block;font-size:13.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.verdict{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;font-size:14.5px;margin-top:4px}
+.verdict span{color:var(--mut)}
+.verdict b{color:var(--ink);font-weight:600}
 .ok{color:var(--ok);font-weight:600}
 .bad{color:var(--bad);font-weight:600}
 .tools{position:sticky;top:60px;z-index:10;background:var(--bg);display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 0;margin-bottom:4px}
@@ -159,7 +165,7 @@ footer{border-top:1px solid var(--line);padding-block:24px 40px;color:var(--mut)
 footer p{max-width:80ch}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media(max-width:860px){.calc{grid-template-columns:minmax(0,1fr)}.result{position:static}.sum{grid-template-columns:repeat(2,minmax(0,1fr))}.ev{grid-template-columns:minmax(0,1fr);gap:14px}.pb{grid-template-columns:160px minmax(0,1fr);gap:14px}}
-@media(max-width:560px){.top .wrap{min-height:56px;gap:8px}.logo span{display:none}.logo .short{display:inline}.tabs a{padding:8px 10px}.tools{top:56px}.grid2{grid-template-columns:minmax(0,1fr)}.pb{grid-template-columns:minmax(0,1fr)}.face,.more summary{width:64px}.pic,.more summary{height:64px}.pic{width:64px}.face small{font-size:11.5px}.faces{gap:8px}.face{font-size:12px}.panel{padding:16px}.count{margin-left:0}.mobbar{display:flex}}
+@media(max-width:560px){.top .wrap{min-height:56px;gap:8px}.logo span{display:none}.logo .short{display:inline}.tabs a{padding:8px 10px}.tools{top:56px}.grid2{grid-template-columns:minmax(0,1fr)}.pb{grid-template-columns:minmax(0,1fr)}.face,.more summary{width:64px}.pic,.more summary{height:64px}.pic{width:64px}.face small{font-size:11.5px}.faces{gap:8px}.face{font-size:12px}.panel{padding:16px}.brk{gap:6px}.brk>div{padding:8px 10px}.brk strong{font-size:15px}.brk span,.brk small{font-size:12px}.count{margin-left:0}.mobbar{display:flex}}
 .mobbar{display:none;position:sticky;bottom:0;z-index:15;background:var(--bg);border-top:1px solid var(--line);padding:10px max(16px,4vw) calc(10px + env(safe-area-inset-bottom,0px));justify-content:space-between;align-items:center;font-size:14px;color:var(--mut)}
 .mobbar b{color:var(--ink);font-size:18px;font-variant-numeric:tabular-nums}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -269,8 +275,9 @@ function simulate(){
     if(planMap.has(p.id)){
       const want=planMap.get(p.id),used=Math.min(want,o.availLo);
       const units=Math.floor(used/11)*10+used%11,ut=Math.min(Math.floor(tk),units),sqUsed=(units-ut)*3;
+      const sqLo=lo,sqHi=hi,tkB=tk;
       tk-=ut;lo=Math.max(0,lo-sqUsed);hi=Math.max(0,hi-sqUsed);
-      Object.assign(o,{want,used,short:Math.max(0,want-o.availLo),afterLo:lo,afterHi:hi});
+      Object.assign(o,{want,used,short:Math.max(0,want-o.availLo),sqLo,sqHi,tkB,ut,sqUsed,tkAfter:tk,afterLo:lo,afterHi:hi});
     }
     out.push(o);
   });
@@ -293,6 +300,9 @@ const faceRow=svs=>{const k=svs.length>5?4:svs.length,rest=svs.slice(k);
   return `<div class="faces">${svs.slice(0,k).map(face).join("")}${rest.length?`<details class="more"><summary aria-label="Show ${rest.length} more servants">+${rest.length}</summary><div class="pop">${rest.map(face).join("")}</div></details>`:""}</div>`};
 const nm=s=>`<b>${esc(s.name)}</b>`;
 const bigList=svs=>`<div class="nameline"><p>${svs.length} servants: ${svs.slice(0,3).map(nm).join(", ")}…</p><details class="more wide"><summary>Show all</summary><div class="pop list">${svs.map(s=>esc(s.name)).join("<br>")}</div></details></div>`;
+const fl=x=>Math.floor(x+1e-9).toLocaleString("en-US");
+const sqR=(a,b)=>fl(a)===fl(b)?fl(a):`${fl(a)}–${fl(b)}`;
+const tks=n=>{n=Math.floor(n+1e-9);return `${n.toLocaleString("en-US")} ticket${n===1?"":"s"}`};
 const fives=p=>svOf(p).filter(s=>s.r===5).length;
 
 function renderCalc(sim){
@@ -323,17 +333,20 @@ function renderCalc(sim){
     return `<article class="pb${o.short?" short":""}">
       <div class="art">${img(bannerImg(p),"",800,300)}</div>
       <div><div class="pbh"><div><h3>${esc(title(p))}</h3>
-        <div class="meta">Global ~${fdate(o.date)} · ${esc(p.ev||p.n)}${n5?` · ${n5} 5★ on rate-up`:""}</div></div>
+        <div class="meta">Global ~${fdate(o.date)} · ${esc(p.ev||p.n)}${n5?` · ${n5} featured 5★`:""}</div></div>
         <button class="btn sm danger x" data-rm="${id}" aria-label="Remove ${esc(title(p))} from plan">Remove</button></div>
         <div class="pctl"><label class="sr" for="pl-${id}">Rolls</label>
           <input class="num" type="number" min="1" inputmode="numeric" id="pl-${id}" data-pulls="${id}" value="${o.want}">
           <button class="btn sm" data-set="${id}" data-v="11">11</button><button class="btn sm" data-set="${id}" data-v="110">110</button>
           <button class="btn sm" data-set="${id}" data-v="330">330 pity</button><button class="btn sm" data-set="${id}" data-v="max">All I have</button></div>
+        <div class="brk">
+          <div><span>You'll have by ${fdate(o.date).replace(/, \d{4}$/,"")}</span><strong>${sqR(o.sqLo,o.sqHi)} SQ</strong><small>${tks(o.tkB)} · ${range(o.availLo,o.availHi)} rolls</small></div>
+          <div><span>${fmt(o.used)} rolls cost</span><strong>${fl(o.sqUsed)} SQ</strong><small>${tks(o.ut)}</small></div>
+          <div><span>Left after</span><strong>${sqR(o.afterLo,o.afterHi)} SQ</strong><small>${tks(o.tkAfter)}</small></div>
+        </div>
         <div class="bar"><i style="width:${(fill*100).toFixed(1)}%"></i></div>
-        <div class="nums"><span>Available <b>${range(o.availLo,o.availHi)}</b></span><span>Using <b>${fmt(o.used)}</b></span>
-          <span>Chance <b>${pct(prob(o.used))}</b></span>
-          <span>${o.short?`<span class="bad">Short ${fmt(o.short)} rolls (${fmt(o.short*30/11)} SQ)</span>`:o.used>=330?'<span class="ok">Pity guaranteed</span>':'<span class="ok">Covered</span>'}</span>
-          <span>SQ after <b>${range(o.afterLo,o.afterHi)}</b></span></div>
+        <div class="verdict">${o.short?`<span class="bad">Short ${fmt(o.short)} rolls. You need ${fmt(Math.ceil(o.short*30/11))} more SQ for ${fmt(o.want)}.</span>`:o.used>=330?'<span class="ok">Covered. 330 rolls guarantee the servant.</span>':`<span class="ok">Covered. You can do all ${fmt(o.want)} rolls.</span>`}
+          <span>Chance of at least one copy <b>${pct(prob(o.used))}</b></span></div>
       </div></article>`}).join("")+`<p class="hint" style="margin-top:14px">Chance is for at least one copy at 0.8% per roll; 330 rolls on the same banner guarantee the servant. Tickets are spent before quartz, using the low end of the range.</p>`;
 }
 
