@@ -49,7 +49,7 @@ async function main() {
   for (const n of jpNames) console.log(`::warning::Event without an English name, add it to data/names.json: ${n}`);
 
   // New images: downloaded as is, never resized or re-encoded.
-  const files = neededFiles(wiki, icons);
+  const files = { ...neededFiles(wiki, icons), "saintquartz.png": "Saintquartz.png" }; // favicon: the game's Saint Quartz icon
   const dir = join(root, "assets", "w");
   await mkdir(dir, { recursive: true });
   const missing = Object.entries(files).filter(([local]) => !existsSync(join(dir, local)));
