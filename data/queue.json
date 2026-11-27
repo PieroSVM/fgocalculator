@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-26",
+ "generated": "2026-11-27",
  "source": "Fandom FGO Wiki (Event List (US)/Upcoming Events) + Atlas Academy",
  "anchor": {
   "id": 80494,
@@ -2387,7 +2387,7 @@
   },
   {
    "jp": "2026-03-19",
-   "n": "Water Monster Crisis Rerun (Lite)",
+   "n": "Sea Monster Crisis Rerun",
    "t": "evento",
    "s": "",
    "d": 20,
@@ -2657,7 +2657,7 @@
      "r": 5,
      "cls": "Archer",
      "lim": 1,
-     "i": "S237A1Icon.webp"
+     "i": "S470A1Icon.webp"
     }
    ],
    "img": "PastChaldeaSummon1.png",
@@ -2851,13 +2851,6 @@
      "i": "S302A1Icon.webp"
     },
     {
-     "name": "Atalanta",
-     "r": 4,
-     "cls": "",
-     "lim": 0,
-     "i": "S014A1Icon.webp"
-    },
-    {
      "name": "Sima Yi (Reines)",
      "r": 5,
      "cls": "Rider",
@@ -2870,13 +2863,6 @@
      "cls": "Lancer",
      "lim": 0,
      "i": "S119A1Icon.webp"
-    },
-    {
-     "name": "Alessandro di Cagliostro",
-     "r": 4,
-     "cls": "",
-     "lim": 0,
-     "i": "S410A1Icon.webp"
     },
     {
      "name": "Francis Drake",
@@ -3074,13 +3060,6 @@
      "i": "S475A1Icon.webp"
     },
     {
-     "name": "Biscione (Caster)",
-     "r": 4,
-     "cls": "",
-     "lim": 1,
-     "i": "S477A1Icon.webp"
-    },
-    {
      "name": "Kingprotea (Moon Cancer)",
      "r": 5,
      "cls": "Moon Cancer",
@@ -3143,13 +3122,6 @@
      "i": "S479A1Icon.webp"
     },
     {
-     "name": "Ono no Komachi (Archer)",
-     "r": 4,
-     "cls": "",
-     "lim": 1,
-     "i": "S480A1Icon.webp"
-    },
-    {
      "name": "Lilith (Rider)",
      "r": 5,
      "cls": "Rider",
@@ -3160,53 +3132,15 @@
    "img": "Summer2026Summon3.png",
    "big": false,
    "end": "2026-09-02",
-   "d": 0,
+   "d": 5,
    "a": 0,
    "b": 0,
    "k": 0,
    "id": "w:Summer2026Summon3"
   },
   {
-   "jp": "2026-08-14",
-   "n": "Chaldea Great Southern Sea Showdown! · Summoning Campaign 4",
-   "ev": "Chaldea Great Southern Sea Showdown!",
-   "t": "banner",
-   "s": "Kingprotea",
-   "sv": [
-    {
-     "name": "Kingprotea",
-     "r": 5,
-     "cls": "",
-     "lim": 1,
-     "i": "S238A1Icon.webp"
-    },
-    {
-     "name": "Biscione (Caster)",
-     "r": 4,
-     "cls": "Caster",
-     "lim": 1,
-     "i": "S477A1Icon.webp"
-    },
-    {
-     "name": "Ono no Komachi (Archer)",
-     "r": 4,
-     "cls": "Archer",
-     "lim": 1,
-     "i": "S480A1Icon.webp"
-    }
-   ],
-   "img": "Summer2026Summon4.png",
-   "big": false,
-   "end": "2026-09-02",
-   "d": 5,
-   "a": 0,
-   "b": 0,
-   "k": 0,
-   "id": "w:Summer2026Summon4"
-  },
-  {
    "jp": "2026-08-19",
-   "n": "Chaldea Great Southern Sea Showdown! · Summoning Campaign 5",
+   "n": "Chaldea Great Southern Sea Showdown! · Summoning Campaign 4",
    "ev": "Chaldea Great Southern Sea Showdown!",
    "t": "banner",
    "s": "Osakabehime, Andromeda",
@@ -3414,13 +3348,6 @@
      "i": "S075A1Icon.webp"
     },
     {
-     "name": "Baobhan Sith",
-     "r": 4,
-     "cls": "",
-     "lim": 0,
-     "i": "S311A1Icon.webp"
-    },
-    {
      "name": "Kukulkan",
      "r": 5,
      "cls": "Foreigner",
@@ -3452,13 +3379,6 @@
      "i": "S309A1Icon.webp"
     },
     {
-     "name": "Minamoto no Raikō (Lancer)",
-     "r": 4,
-     "cls": "",
-     "lim": 1,
-     "i": "S181A1Icon.webp"
-    },
-    {
      "name": "Quetzalcoatl",
      "r": 5,
      "cls": "Rider",
@@ -3488,13 +3408,6 @@
      "cls": "Assassin",
      "lim": 0,
      "i": "S380A1Icon.webp"
-    },
-    {
-     "name": "Minamoto no Raikō (Lancer)",
-     "r": 4,
-     "cls": "",
-     "lim": 1,
-     "i": "S181A1Icon.webp"
     },
     {
      "name": "Abigail Williams (Summer)",
@@ -3568,13 +3481,6 @@
      "cls": "Avenger",
      "lim": 1,
      "i": "S106A1Icon.webp"
-    },
-    {
-     "name": "Yui Shōsetsu",
-     "r": 4,
-     "cls": "",
-     "lim": 1,
-     "i": "S404A1Icon.webp"
     },
     {
      "name": "Jeanne d'Arc",
@@ -3858,13 +3764,6 @@
      "i": "S327A1Icon.webp"
     },
     {
-     "name": "Okita J Sōji",
-     "r": 4,
-     "cls": "",
-     "lim": 1,
-     "i": "S267A1Icon.webp"
-    },
-    {
      "name": "Uesugi Kenshin",
      "r": 5,
      "cls": "Ruler",
@@ -3877,13 +3776,6 @@
      "cls": "Rider",
      "lim": 1,
      "i": "S397A1Icon.webp"
-    },
-    {
-     "name": "Saitō Hajime",
-     "r": 4,
-     "cls": "",
-     "lim": 1,
-     "i": "S293A1Icon.webp"
     },
     {
      "name": "Sakamoto Ryōma (Lancer)",
@@ -3903,5 +3795,5 @@
    "id": "w:2026gudaguda_pu4"
   }
  ],
- "version": "c7a2b8994adc"
+ "version": "4d489a540db1"
 }
