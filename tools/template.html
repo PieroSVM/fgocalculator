@@ -258,14 +258,14 @@ const DAY=864e5,today=new Date(new Date().toDateString()).getTime();
 const CLS={saber:"Saber",archer:"Archer",lancer:"Lancer",rider:"Rider",caster:"Caster",assassin:"Assassin",berserker:"Berserker",ruler:"Ruler",avenger:"Avenger",alterEgo:"Alter Ego",moonCancer:"Moon Cancer",foreigner:"Foreigner",pretender:"Pretender",shielder:"Shielder",beast:"Beast",unBeastOlgaMarie:"Beast"};
 const KEY="fgo-sq-calc-v5",OLD="fgo-sq-calc-v4";
 const fresh=()=>A.steps.map(o=>({...o}));
-const DEF=()=>({sq:120,frag:0,tk:4,story:30,weekly:9,monthly:5,useTk:true,useEv:true,drift:15,plan:[],q:fresh()});
+const DEF=()=>({sq:0,frag:0,tk:0,story:0,weekly:9,monthly:5,useTk:true,useEv:true,drift:15,plan:[],q:fresh()});
 let st,hist=[];
 try{st=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!st||!Array.isArray(st.q)){st=DEF();try{const o=JSON.parse(localStorage.getItem(OLD));if(o){for(const k of["sq","frag","tk","story","weekly","monthly","drift","useTk","useEv"])if(k in o)st[k]=o[k];if(Array.isArray(o.plan))st.plan=o.plan.filter(p=>st.q.some(x=>x.id===p.id))}}catch(e){}}
 // New data from the daily update: take the fresh queue and keep planned banners (matched by id, or by banner art for older saves).
-// Coming back after more than 5 minutes starts a clean plan with the source queue; saved resources stay.
+// Coming back after more than 5 minutes starts over: resources at 0, empty plan, source queue. Income settings stay.
 const IDLE=5*60*1000;
-if(st.t&&Date.now()-st.t>IDLE){st.plan=[];st.q=fresh();st.v=A.version}
+if(st.t&&Date.now()-st.t>IDLE){Object.assign(st,{sq:0,frag:0,tk:0,story:0,plan:[],q:fresh(),v:A.version})}
 if(st.v!==A.version){const old=Array.isArray(st.q)?st.q:[];st.q=fresh();
   st.plan=(st.plan||[]).map(p=>{if(st.q.some(x=>x.id===p.id))return p;const o=old.find(x=>x.id===p.id),n=o&&o.img&&st.q.find(x=>x.img===o.img);return n?{...p,id:n.id}:null}).filter(Boolean);
   st.v=A.version}
