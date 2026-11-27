@@ -132,21 +132,23 @@ main{padding-block:28px 64px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .chips span{background:var(--sf);border-radius:8px;padding:4px 10px;font-size:13.5px;font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
 .chips .a{background:var(--acSf);color:var(--ac);font-weight:600}
-.faces{display:flex;gap:10px;margin-top:16px;position:relative}
-.face{width:82px;flex:none;font-size:12.5px;font-weight:600;line-height:1.3}
+.faces{display:grid;grid-template-columns:repeat(5,minmax(0,82px));gap:10px;margin-top:16px;position:relative}
+.face{min-width:0;font-size:12.5px;font-weight:600;line-height:1.3}
 .face>span,.face small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.more{position:relative;flex:none}
-.more summary{list-style:none;width:82px;height:82px;border-radius:10px;background:var(--sf);display:grid;place-items:center;font-weight:600;font-size:15px;min-height:0;color:var(--ink)}
+.more{position:static;min-width:0}.more.wide{position:relative;flex:none}
+.more summary{list-style:none;width:100%;aspect-ratio:1;border-radius:10px;background:var(--sf);display:grid;place-items:center;font-weight:600;font-size:15px;min-height:0;color:var(--ink)}
 .more summary::-webkit-details-marker{display:none}
 .more summary:hover,.more[open] summary{background:var(--sf2)}
-.more.wide summary{width:auto;height:36px;padding:0 12px;border-radius:8px;font-size:14px}
-.pop{position:absolute;right:0;top:calc(100% + 8px);z-index:30;background:var(--bg);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:12px;width:max-content;max-width:min(372px,calc(100vw - 32px));display:flex;flex-wrap:wrap;gap:10px;max-height:340px;overflow:auto}
-.pop.list{display:block;font-size:14px;line-height:1.7}
+.more.wide summary{width:auto;aspect-ratio:auto;height:36px;padding:0 12px;border-radius:8px;font-size:14px}
+.pop{position:absolute;left:50%;transform:translateX(-50%);top:calc(100% + 10px);z-index:30;background:var(--bg);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.18);padding:16px;--w:82px;width:calc(var(--c,3)*(var(--w) + 12px) + 22px);max-width:calc(100vw - 32px);display:flex;flex-wrap:wrap;justify-content:center;gap:14px 12px;max-height:min(440px,70vh);overflow:auto;overscroll-behavior:contain}
+.pop .face{text-align:center;width:var(--w);flex:none}
+.more.wide .pop{left:auto;right:0;transform:none}
+.pop.list{display:block;padding:12px;font-size:14px;line-height:1.7}
 .ev:has(details[open]){content-visibility:visible;z-index:5;position:relative}
 .nameline{display:flex;align-items:center;gap:10px;margin-top:14px}
 .nameline p{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;color:var(--mut)}
 .nameline b{color:var(--ink);font-weight:600}
-.pic{position:relative;width:82px;height:82px;border-radius:10px;overflow:hidden;background:var(--sf);margin-bottom:6px}
+.pic{position:relative;width:100%;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--sf);margin-bottom:6px}
 .pic img{position:absolute;left:-5.65%;top:-4.84%;width:111.3%;height:121%;max-width:none}
 .face small{display:block;color:var(--mut);font-weight:500;font-size:12px;margin-top:1px}
 .add{margin-top:16px}
@@ -167,7 +169,7 @@ footer{border-top:1px solid var(--line);padding-block:24px 40px;color:var(--mut)
 footer p{max-width:80ch}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media(max-width:860px){.calc{grid-template-columns:minmax(0,1fr)}.result{position:static}.sum{grid-template-columns:repeat(2,minmax(0,1fr))}.ev{grid-template-columns:minmax(0,1fr);gap:14px}.pb{grid-template-columns:160px minmax(0,1fr);gap:14px}}
-@media(max-width:560px){.top .wrap{min-height:56px;gap:8px}.logo span{display:none}.logo .short{display:inline}.tabs a{padding:8px 10px}.tools{top:56px}.grid2{grid-template-columns:minmax(0,1fr)}.pb{grid-template-columns:minmax(0,1fr)}.face,.more summary{width:64px}.pic,.more summary{height:64px}.pic{width:64px}.face small{font-size:11.5px}.faces{gap:8px}.face{font-size:12px}.panel{padding:16px}.brk{gap:6px}.brk>div{padding:8px 10px}.brk strong{font-size:15px}.brk span,.brk small{font-size:12px}.brk .rl{font-size:13.5px}.count{margin-left:0}.mobbar{display:flex}}
+@media(max-width:560px){.top .wrap{min-height:56px;gap:8px}.logo span{display:none}.logo .short{display:inline}.tabs a{padding:8px 10px}.tools{top:56px}.grid2{grid-template-columns:minmax(0,1fr)}.pb{grid-template-columns:minmax(0,1fr)}.faces{grid-template-columns:repeat(5,minmax(0,64px))}.pop{--w:64px;padding:12px;width:calc(var(--c,3)*(var(--w) + 12px) + 14px)}.face small{font-size:11.5px}.faces{gap:8px}.face{font-size:12px}.panel{padding:16px}.brk{gap:6px}.brk>div{padding:8px 10px}.brk strong{font-size:15px}.brk span,.brk small{font-size:12px}.brk .rl{font-size:13.5px}.count{margin-left:0}.mobbar{display:flex}}
 .mobbar{display:none;position:sticky;bottom:0;z-index:15;background:var(--bg);border-top:1px solid var(--line);padding:10px max(16px,4vw) calc(10px + env(safe-area-inset-bottom,0px));justify-content:space-between;align-items:center;font-size:14px;color:var(--mut)}
 .mobbar b{color:var(--ink);font-size:18px;font-variant-numeric:tabular-nums}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -303,7 +305,7 @@ const img=(src,alt,w,h)=>src?`<img src="${src}" alt="${esc(alt)}" width="${w}" h
 const daysLabel=d=>d<=0?"Available now":d<45?`In ${Math.round(d)} day${Math.round(d)===1?"":"s"}`:`In ~${Math.round(d/30)} months`;
 const face=s=>`<div class="face" title="${esc(s.name)}"><div class="pic">${img(faceImg(s),"",138,150)}</div><span>${esc(s.name)}</span><small>${s.r}★ ${esc(CLS[s.cls]||s.cls||"")}</small></div>`;
 const faceRow=svs=>{const k=svs.length>5?4:svs.length,rest=svs.slice(k);
-  return `<div class="faces">${svs.slice(0,k).map(face).join("")}${rest.length?`<details class="more"><summary aria-label="Show ${rest.length} more servants">+${rest.length}</summary><div class="pop">${rest.map(face).join("")}</div></details>`:""}</div>`};
+  return `<div class="faces">${svs.slice(0,k).map(face).join("")}${rest.length?`<details class="more"><summary aria-label="Show ${rest.length} more servants">+${rest.length}</summary><div class="pop" style="--c:${Math.min(rest.length,3)}">${rest.map(face).join("")}</div></details>`:""}</div>`};
 const nm=s=>`<b>${esc(s.name)}</b>`;
 const bigList=svs=>`<div class="nameline"><p>${svs.length} servants: ${svs.slice(0,3).map(nm).join(", ")}…</p><details class="more wide"><summary>Show all</summary><div class="pop list">${svs.map(s=>esc(s.name)).join("<br>")}</div></details></div>`;
 const fl=x=>Math.floor(x+1e-9).toLocaleString("en-US");
